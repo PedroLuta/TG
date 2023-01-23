@@ -1,0 +1,6 @@
+  0    20  21  !  Vel1   Vel2   Nvel   (ms)
+  2000  2000  1  !  Rpm1   Rpm2   Nrpm
+  24   24   0   !  Volt1  Volt2  Nvolt
+ 0   0   0  !  Dbet1  Dbet2  NDbet
+
+
