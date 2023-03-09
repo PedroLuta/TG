@@ -1,0 +1,4 @@
+0                   ! Axial Velocity    [m/s]
+0                   ! Planar Velocity   [m/s]
+2000                ! Rpm 			    [1/min]
+1.225               ! Air density       [Kg/m3]

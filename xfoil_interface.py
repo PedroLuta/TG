@@ -1,4 +1,4 @@
-from importing import *
+import subprocess as sp
 
 def get_curve_com_default(Rey, a1, a2, astep, afile = 'airfoils\\airfoil.txt', timeout = 5, \
     xfoilpath = 'xfoil.exe', itr = 250, M = 0):

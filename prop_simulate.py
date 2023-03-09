@@ -1,8 +1,14 @@
-from importing import *
+# from importing import *
+import math
+import numpy as np
 import xfoil_interface
 
-def qprop_fixed_pitch(vi, radps, Blades, R, r_vector, Beta_dist, chord_dist, airfoil = 'airfoils\\airfoil.txt', rho = 1.225, dvisc = 1.8/100000):
+euler = np.e
+pi = np.pi
+
+def qprop_fixed_pitch(vi, radps, Blades, R, r_vector, Beta_dist, chord_dist, airfoil = 'airfoils\\airfoil.txt', rho = 1.225, dvisc = 1.8/100000, alphas = [-5, 10, 1]):
     #CHORD DISTRIBUTION TAKEN AS INPUT
+    a1, a2, astep = alphas[0], alphas[1], alphas[2]
     kvisc = dvisc/rho
 
     dT_vector = []
@@ -22,7 +28,7 @@ def qprop_fixed_pitch(vi, radps, Blades, R, r_vector, Beta_dist, chord_dist, air
         V = ((Vr**2)+(vi**2))**0.5
         Re = ((V*chord)/kvisc) 
 
-        alpha_c, Cl_c, Cd_c = xfoil_interface.get_curve_com_default(Re, -5, 10, 1, afile = airfoil)
+        alpha_c, Cl_c, Cd_c = xfoil_interface.get_curve_com_default(Re, a1, a2, astep, afile = airfoil)
         WA, WT, Cl, Cd = induction_qprop_fixed_pitch(radps, rr, Blades, alpha_c, Cl_c, Cd_c, Beta, R, chord, vi)
         W = (WA**2 + WT**2)**0.5
         phi = math.atan(WA/WT)
@@ -39,63 +45,29 @@ def qprop_fixed_pitch(vi, radps, Blades, R, r_vector, Beta_dist, chord_dist, air
         Cd_vector.append(Cd)
     return dT_vector, dQ_vector, r_vector, Re_vector, WA_vector, Cl_vector, Cd_vector
 
-def qprop_highest_efficiency(vi, radps, Blades, R, r_vector, chord_dist, airfoil = 'airfoils\\airfoil.txt', rho = 1.225, dvisc = 1.8/100000, alphas = [2, 8, 1]):
+def momentum_Ftip_fixed_pitch(vi, radps, Blades, R, r_vector, Beta_dist, chord_dist, airfoil = 'airfoils\\airfoil.txt', rho = 1.225, dvisc = 1.8/100000, alphas = [-5, 10, 1]):
     a1, a2, astep = alphas[0], alphas[1], alphas[2]
     kvisc = dvisc/rho
 
-    Beta_vector = []
     dT_vector = []
     dQ_vector = []
 
     for i in range(len(r_vector)):
         rr = r_vector[i]
         chord = chord_dist[i]
-
-        Vr = radps*rr
-        V = ((Vr**2)+(vi**2))**0.5
-        Re = ((V*chord)/kvisc) 
-
-        alpha_c, Cl_c, Cd_c = xfoil_interface.get_curve_com_default(Re, a1, a2, astep, afile = airfoil)
-        alpha, Cl, Cd = calculate_most_eff_alpha(alpha_c, Cl_c, Cd_c)
-
-        WA, WT = induction_qprop_original_adapted(radps, rr, Blades, Cl, R, chord, vi)
-        W = (WA**2 + WT**2)**0.5
-        phi = math.atan(WA/WT)
-        dT = (rho*Blades*chord)*(V**2)*(Cl*math.cos(phi)-Cd*math.sin(phi))/2
-        dQ = (rho*Blades*chord*rr)*(V**2)*(Cl*math.sin(phi)+Cd*math.cos(phi))/2
-        Beta_vector.append(alpha + math.degrees(phi))
-        dQ_vector.append(dQ)
-        dT_vector.append(dT)
-
-    return dT_vector, dQ_vector, Beta_vector
-
-def momentum_Ftip_highest_efficiency(vi, radps, Blades, R, r_vector, chord_dist, airfoil = 'airfoils\\airfoil.txt', rho = 1.225, dvisc = 1.8/100000, alphas = [2, 8, 1]):
-    a1, a2, astep = alphas[0], alphas[1], alphas[2]
-    kvisc = dvisc/rho
-
-    Beta_vector = []
-    dT_vector = []
-    dQ_vector = []
-
-    for i in range(len(r_vector)):
-        rr = r_vector[i]
-        chord = chord_dist[i]
+        Beta = Beta_dist[i]
 
         Vr = radps*rr
         V = ((Vr**2)+(vi**2))**0.5
         Re = ((V*chord)/kvisc)
 
         alpha_c, Cl_c, Cd_c = xfoil_interface.get_curve_com_default(Re, a1, a2, astep, afile = airfoil)
-        alpha, Cl, Cd = calculate_most_eff_alpha(alpha_c, Cl_c, Cd_c)
-        try:
-            dT, dQ, phi, _, _ = jitted_induction_momentum_Ftip(radps, rr, Cl, Cd, Blades, rho, R, chord, vi)
-        except:
-            dT, dQ, phi, _, _ = 0, 0, 0, 0, 0 
-        Beta_vector.append(alpha + math.degrees(phi))
+
+        dT, dQ = induction_momentum_Ftip_fixed_pitch(radps, rr, Cl_c, Cd_c, alpha_c, Beta, Blades, rho, R, chord, vi) 
         dQ_vector.append(dQ)
         dT_vector.append(dT)
 
-    return dT_vector, dQ_vector, Beta_vector
+    return dT_vector, dQ_vector
 
 
 
@@ -144,112 +116,46 @@ def induction_qprop_fixed_pitch(OMG, rr, BLDS, a_list, CL_list, CD_list, Beta, R
             CL, CD = find_alpha_interval_return_CL_CD(a_list, CL_list, CD_list, math.degrees(math.atan(UA/UT)) - Beta)
             return UA, UT, CL, CD
 
-def induction_qprop_original_adapted(OMG, rr, BLDS, CL, RAD, CHORD, VEL):
-    EPS = 1E-06
-    UA     = VEL   
-    UT     = OMG*rr 
-
-    WZ = (UA**2 + UT**2)**0.5
-
-    PSImid = 0
-    PSIup = math.radians(90)
-    PSIlo = math.radians(-90)
-
-    first = True
-
-    while True:
-        if first:
-            RESup, _, _ = calculate_residual_original(UA, UT, WZ, PSIup, CHORD, CL, rr, BLDS, RAD)
-            RESlo, _, _ = calculate_residual_original(UA, UT, WZ, PSIlo, CHORD, CL, rr, BLDS, RAD)
-            first = False
-        else:
-            PSImid = (PSIup + PSIlo)/2
-        RESmid, WAmid, WTmid = calculate_residual_original(UA, UT, WZ, PSImid, CHORD, CL, rr, BLDS, RAD)
-
-        if(abs(PSIup - PSIlo) < EPS):
-            return WAmid, WTmid
-
-        if RESup*RESmid < 0:
-            RESlo = RESmid
-            PSIlo = PSImid
-        elif RESlo*RESmid < 0:
-            RESup = RESmid
-            PSIup = PSImid
-        else:
-            #print(f"Induction failed, section at radial position {(rr/RAD)*100}% will be assumed as simple flow")
-            return UA, UT
-
-def induction_momentum_Ftip(radps, rr, Cl, Cd, Blades, rho, R, chord, vi):
+def induction_momentum_Ftip_fixed_pitch(radps, rr, Cl_c, Cd_c, alpha_c, Beta, Blades, rho, R, chord, Vax_before):
     #pi = nup.pi
     #euler = nup.e
     check = 0
     ai = 0.1
     ai0 = 0.01
 
-    exp_func1 = (-Blades/2)*((R-rr)/rr)
-    dT1 = (rho*Blades*chord)/2
-    dQ1 = (rho*Blades*chord*rr)/2           
-    denominator1 = 4*pi*rr*rho
-    denominator2 = 4*pi*(rr**3)*rho
-
     while True:
         Vr = radps*rr*(1-ai0)
-        Vax = vi*(1+ai)
+        Vax = Vax_before*(1+ai)
         V = ((Vr**2)+(Vax**2))**0.5
 
         phi = math.atan(Vax/Vr)
-        exp_func = exp_func1*(V/Vax)
+        alpha = Beta - math.degrees(phi)
+        Cl, Cd = find_alpha_interval_return_CL_CD(alpha_c, Cl_c, Cd_c, alpha)
 
+        exp_func = (-Blades/2)*((R-rr)/rr)*(V/Vax)
         F_tip = (2/pi)*math.acos(euler**exp_func)
 
-        dT = dT1*(V**2)*(Cl*math.cos(phi)-Cd*math.sin(phi))
-        dQ = dQ1*(V**2)*(Cl*math.sin(phi)+Cd*math.cos(phi))
+        dT = (rho*(V**2)/2)*(Cl*math.cos(phi)-Cd*math.sin(phi))*(Blades*chord)
+        dQ = (rho*(V**2)/2)*(Cl*math.sin(phi)+Cd*math.cos(phi))*(Blades*chord)*rr
 
-        ai_new = dT/(denominator1*(V**2)*(1+ai)*F_tip)
-        ai0_new = dQ/(denominator2*V*(1+ai)*radps*F_tip)
+        ai_new = dT/(4*pi*rr*rho*Vax*Vax_before*F_tip) #
+        ai0_new = dQ/(4*pi*rr*rho*Vax*(radps*rr)*F_tip*rr) #
 
         ai_middle = (ai_new + ai)/2
         ai0_middle = (ai0_new + ai0)/2
 
         if ((abs(ai_middle - ai) < 1/100000) and (abs(ai0_middle - ai0) < 1/100000)) or check > 500:
-            return dT, dQ, phi, Vr, Vax
+            return dT, dQ
 
         ai = ai_middle
         ai0 = ai0_middle
         check += 1
 
-jitted_induction_momentum_Ftip = njit()(induction_momentum_Ftip)
+
 
 
 
 #Residuals
-def calculate_residual_original(UA, UT, WZ, PSI, CHORD, CL, rr, BLDS, RAD):
-    COSP = math.cos(PSI)
-    SINP = math.sin(PSI)
-    WA     = 0.5*UA     + 0.5*WZ    *SINP
-    WT     = 0.5*UT     + 0.5*WZ    *COSP
-    if (WA <= 0.0):
-        F     = 1.0
-        ADW     = 0
-    else:
-        TSR = WT/WA * RAD/rr
-        FARG     = 0.5*BLDS*(1.0-rr/RAD)*TSR
-        FARG = min(FARG, 20.0 )   
-        FEXP = euler**(-FARG)  
-        if FEXP > 1 or FEXP < -1:
-            F = 1
-        else:
-            F = (2.0/pi) * math.acos(FEXP)
-        ADW     =  1.0    /TSR
-    VT     = UT     - WT
-    QBI = 4.0/BLDS
-    PIR = ((pi*rr)**2 + (QBI*RAD*ADW)**2)**0.5
-    GAM     = QBI* F*VT                *PIR
-    WSQ = WA**2 + WT**2
-    W = (WSQ)**0.5
-    RES     = GAM     - 0.5*CHORD* CL*W
-    return RES, WA, WT
-
 def calculate_residual_fixed_pitch(UA, UT, WZ, Beta, PSI, CHORD, a_list, CL_list, CD_list, rr, BLDS, RAD):
     COSP = math.cos(PSI)
     SINP = math.sin(PSI)

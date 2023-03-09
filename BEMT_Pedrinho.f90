@@ -5,14 +5,19 @@ program BEMT_Pedrinho
     character (len = 256)                   ::  err_msg
     character (len = 256)                   ::  dummy_string
 
-    character (len = 256)                   ::  input_file
+    character (len = 256)                   ::  input_prop_file, input_run_file
     character (len = 1000)                  ::  line
-    integer                                 ::  input_unit
+    integer                                 ::  input_prop_unit, input_run_unit
 
     character (len = 256)                   ::  prop_name
     integer                                 ::  prop_n_blades
     integer                                 ::  prop_n_stations
-    real                                    ::  prop_radius_meters
+    real                                    ::  prop_radius_m
+
+    real                                    ::  axial_velocity_m_s
+    real                                    ::  planar_velocity_m_s
+    real                                    ::  rpm
+    real                                    ::  rho_kg_m3
 
     real, allocatable                       ::  radius_vec_adim(:)     !r/R
     real, allocatable                       ::  chord_vec_adim(:)      !c/R
@@ -21,50 +26,113 @@ program BEMT_Pedrinho
 
     integer                                 ::  i, j, k
 
-    call getarg(1, input_file)
+ !===============================================GET INFO FROM INPUT FILES============================================
+    call getarg(1, input_prop_file)
+    call getarg(2, input_run_file)
 
-    open(newunit = input_unit, file = input_file, status = 'old', iostat = err_status, iomsg = err_msg)
+    open(newunit = input_prop_unit, file = input_prop_file, status = 'old', iostat = err_status, iomsg = err_msg)
+    if (err_status .ne. 0) then; write(*,*) "ERROR -> " // trim(err_msg); write(*, "(a)") err_msg; stop; end if
+    open(newunit = input_run_unit, file = input_run_file, status = 'old', iostat = err_status, iomsg = err_msg)
     if (err_status .ne. 0) then; write(*,*) "ERROR -> " // trim(err_msg); write(*, "(a)") err_msg; stop; end if
 
-
-
-    line = "$"
-    do while ((trim(line) .eq. "") .or. (line(1:1) .eq. '$'))
-        read(input_unit, '(a)', end = 200) line
+   !----------------------------------------name--------------------------------------------------
+    line = "!"
+    do while ((trim(line) .eq. "") .or. (line(1:1) .eq. '!'))
+        read(input_prop_unit, '(a)', end = 200) line
         line = trim_front(line)
     end do
-    prop_name = trim(line)
+    prop_name = trim(line) 
+    write(*, *) trim(prop_name)
 
-    line = "$"
-    do while ((trim(line) .eq. "") .or. (line(1:1) .eq. '$'))
-        read(input_unit, '(a)', end = 200) line
+   !----------------------------------------number of blades--------------------------------------
+    line = "!"
+    do while ((trim(line) .eq. "") .or. (line(1:1) .eq. '!'))
+        read(input_prop_unit, '(a)', end = 200) line
         line = trim_front(line)
     end do
-    read(line, *) prop_n_blades, prop_radius_meters
+    read(line, *) prop_n_blades 
+    write(*, *) prop_n_blades
 
-    line = "$"
-    do while ((trim(line) .eq. "") .or. (line(1:1) .eq. '$'))
-        read(input_unit, '(a)', end = 200) line
+   !----------------------------------------radius------------------------------------------------
+    line = "!"
+    do while ((trim(line) .eq. "") .or. (line(1:1) .eq. '!'))
+        read(input_prop_unit, '(a)', end = 200) line
         line = trim_front(line)
     end do
-    read(line, *) prop_n_stations
+    read(line, *) prop_radius_m 
+    write(*, *) prop_radius_m
+
+   !----------------------------------------number of stations------------------------------------
+    line = "!"
+    do while ((trim(line) .eq. "") .or. (line(1:1) .eq. '!'))
+        read(input_prop_unit, '(a)', end = 200) line
+        line = trim_front(line)
+    end do
+    read(line, *) prop_n_stations 
+    write(*, *) prop_n_stations
 
     allocate(radius_vec_adim(prop_n_stations))
     allocate(chord_vec_adim(prop_n_stations))
     allocate(twist_vec_deg(prop_n_stations))
     allocate(airfoil_vec(prop_n_stations))
 
-    line = "$"
+   !----------------------------------------blade description-------------------------------------
+    line = "!"
     do i = 1, prop_n_stations
-        read(input_unit, '(a)', end = 200) line
+        read(input_prop_unit, '(a)', end = 200) line
         line = trim_front(line)
-        read(line, *) radius_vec_adim(i), chord_vec_adim(i), twist_vec_deg(i), airfoil_vec(i)
+        read(line, *) radius_vec_adim(i), chord_vec_adim(i), twist_vec_deg(i), airfoil_vec(i) 
+    end do
+    write(*, *) radius_vec_adim
+    write(*, *) chord_vec_adim
+    write(*, *) twist_vec_deg
+    write(*, *) airfoil_vec
+
+   !----------------------------------------axial velocity----------------------------------------
+    line = "!"
+    do while ((trim(line) .eq. "") .or. (line(1:1) .eq. '!'))
+        read(input_run_unit, '(a)', end = 200) line
+        line = trim_front(line)
+    end do
+    read(line, *) axial_velocity_m_s 
+    write(*, *) axial_velocity_m_s
+
+   !----------------------------------------radial velocity---------------------------------------
+    line = "!"
+    do while ((trim(line) .eq. "") .or. (line(1:1) .eq. '!'))
+        read(input_run_unit, '(a)', end = 200) line
+        line = trim_front(line)
+    end do
+    read(line, *) planar_velocity_m_s 
+    write(*, *) planar_velocity_m_s
+
+   !----------------------------------------rpm---------------------------------------------------
+    line = "!"
+    do while ((trim(line) .eq. "") .or. (line(1:1) .eq. '!'))
+        read(input_run_unit, '(a)', end = 200) line
+        line = trim_front(line)
+    end do
+    read(line, *) rpm 
+    write(*, *) rpm
+
+   !----------------------------------------Air density-------------------------------------------
+    line = "!"
+    do while ((trim(line) .eq. "") .or. (line(1:1) .eq. '!'))
+        read(input_run_unit, '(a)', end = 200) line
+        line = trim_front(line)
+    end do
+    read(line, *) rho_kg_m3
+    write(*, *) rho_kg_m3
+
+ !===============================================ITERATE============================================
+
+    do i = 1, prop_n_stations
+        continue
     end do
     
-
-    
-    200 continue
-    !END
+    go to 201
+    200 continue !file is not set correctly
+    201 continue !END
 
     contains
         subroutine run_cmd(command, log_fil, supress) !subroutine to run the command prompt 
@@ -116,30 +184,24 @@ program BEMT_Pedrinho
             end if
         end subroutine
 
-        subroutine copy_file(in_fname, out_fname, log_fil, operating_system) !subroutine to copy a file into another file
+        subroutine copy_file(in_fname, out_fname, log_fil) !subroutine to copy a file into another file
             character (len = *), intent(in)         ::  in_fname
             character (len = *), intent(in)         ::  out_fname
             character (len = *), intent(in)         ::  log_fil
-            character (len = *), intent(in)         ::  operating_system
             character (len = 1000)                  ::  command
             character (len = 256)                   ::  resid = "bin\residual\copy_resid"
 
             call delete_file(out_fname)
-            if (trim(operating_system) .eq. "windows") then
-                command = 'copy "' // trim(in_fname) // '" "' // trim(out_fname) // '" > ' // trim(resid)
-            else if (trim(operating_system) .eq. "linux") then
-                command = 'cp "' // trim(in_fname) // '" "' // trim(out_fname) // '" > ' // trim(resid)
-            end if
+            command = 'copy "' // trim(in_fname) // '" "' // trim(out_fname) // '" > ' // trim(resid)
             call run_cmd(command, log_fil, .true.)
             call delete_file(resid)
 
         end subroutine copy_file
 
-        subroutine get_files_on_dir(files, dir_name, log_fil, operating_system) !subroutine to list all the files on a directory
+        subroutine get_files_on_dir(files, dir_name, log_fil) !subroutine to list all the files on a directory
             character (len = 256), allocatable, intent(out) ::  files(:)
             character (len = *), intent(in)                 ::  log_fil
             character (len = *), intent(in)                 ::  dir_name
-            character (len = *), intent(in)                 ::  operating_system
             integer                                         ::  n_lines, i
             character (len = 256)                           ::  file_w_filenames = "bin\residual\resid.txt"
             integer                                         ::  unit_n
@@ -155,11 +217,7 @@ program BEMT_Pedrinho
                 directory = dir_name
             end if
 
-            if (trim(operating_system) .eq. "windows") then
-                command = "dir " // trim(directory) // " /b > " // file_w_filenames
-            else if (trim(operating_system) .eq. "linux") then
-                command = "ls " // trim(directory) // " > " // file_w_filenames
-            end if
+            command = 'dir "' // trim(directory) // '" /b > ' // file_w_filenames
             call run_cmd(trim(command), log_fil, .true.)
 
             open(newunit = unit_n, file = file_w_filenames, status = 'old', iostat = err_status, iomsg = err_msg)
@@ -266,15 +324,14 @@ program BEMT_Pedrinho
 
         end function trim_front
 
-        subroutine clean_folder(folder, log_fil, operating_system)
+        subroutine clean_folder(folder, log_fil)
             implicit none
             character (len = *), intent(in)     ::  folder
             character (len = *), intent(in)     ::  log_fil
-            character (len = *), intent(in)     ::  operating_system
             character (len = 256), allocatable  ::  files(:)
             integer                             ::  i
 
-            call get_files_on_dir(files, folder, log_fil, operating_system)
+            call get_files_on_dir(files, folder, log_fil)
 
             do i = 1, size(files)
                 call delete_file(trim(folder) // "\" // files(i))
