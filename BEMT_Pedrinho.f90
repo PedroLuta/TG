@@ -1,6 +1,8 @@
 program BEMT_Pedrinho
     implicit none
 
+    real, parameter                         ::  pi = 4*atan(1.)
+
     integer                                 ::  err_status
     character (len = 256)                   ::  err_msg
     character (len = 256)                   ::  dummy_string
@@ -23,6 +25,9 @@ program BEMT_Pedrinho
     real, allocatable                       ::  chord_vec_adim(:)      !c/R
     real, allocatable                       ::  twist_vec_deg(:)      
     character (len = 256), allocatable      ::  airfoil_vec(:)      
+
+    real                                    ::  current_rR, current_cR, current_twist_deg, current_airfoil, current_azim_deg
+    real                                    ::  current_tangential_velocity_m_s, current_equivalent_flow_velocity_m_s, current_reynolds
 
     integer                                 ::  i, j, k
 
@@ -127,7 +132,13 @@ program BEMT_Pedrinho
  !===============================================ITERATE============================================
 
     do i = 1, prop_n_stations
-        continue
+        do current_azim_deg = 0, 360, 15
+            current_tangential_velocity_m_s = (rpm*2*pi/60)*(current_rR*prop_radius_m) + (planar_velocity_m_s*sin(current_azim_deg*pi/180))
+            current_equivalent_flow_velocity_m_s = sqrt((current_tangential_velocity_m_s**2) + (axial_velocity_m_s**2))
+            current_reynolds = current_equivalent_flow_velocity_m_s*current_cR*prop_radius_m/((1.8/100000)/rho_kg_m3)
+
+            
+        end do
     end do
     
     go to 201
