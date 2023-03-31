@@ -46,8 +46,8 @@ program BEMT_Pedrinho
         read(input_prop_unit, '(a)', end = 200) line
         line = trim_front(line)
     end do
-    prop_name = trim(line) 
-    write(*, *) trim(prop_name)
+    read(line, *) prop_name
+    ! write(*, *) trim(prop_name)
 
    !----------------------------------------number of blades--------------------------------------
     line = "!"
@@ -56,7 +56,7 @@ program BEMT_Pedrinho
         line = trim_front(line)
     end do
     read(line, *) prop_n_blades 
-    write(*, *) prop_n_blades
+    ! write(*, *) prop_n_blades
 
    !----------------------------------------radius------------------------------------------------
     line = "!"
@@ -65,7 +65,7 @@ program BEMT_Pedrinho
         line = trim_front(line)
     end do
     read(line, *) prop_radius_m 
-    write(*, *) prop_radius_m
+    ! write(*, *) prop_radius_m
 
    !----------------------------------------number of stations------------------------------------
     line = "!"
@@ -74,7 +74,7 @@ program BEMT_Pedrinho
         line = trim_front(line)
     end do
     read(line, *) prop_n_stations 
-    write(*, *) prop_n_stations
+    ! write(*, *) prop_n_stations
 
     allocate(radius_vec_adim(prop_n_stations))
     allocate(chord_vec_adim(prop_n_stations))
@@ -88,10 +88,10 @@ program BEMT_Pedrinho
         line = trim_front(line)
         read(line, *) radius_vec_adim(i), chord_vec_adim(i), twist_vec_deg(i), airfoil_vec(i) 
     end do
-    write(*, *) radius_vec_adim
-    write(*, *) chord_vec_adim
-    write(*, *) twist_vec_deg
-    write(*, *) airfoil_vec
+    ! write(*, *) radius_vec_adim
+    ! write(*, *) chord_vec_adim
+    ! write(*, *) twist_vec_deg
+    ! write(*, *) airfoil_vec
 
    !----------------------------------------axial velocity----------------------------------------
     line = "!"
@@ -100,7 +100,7 @@ program BEMT_Pedrinho
         line = trim_front(line)
     end do
     read(line, *) axial_velocity_m_s 
-    write(*, *) axial_velocity_m_s
+    ! write(*, *) axial_velocity_m_s
 
    !----------------------------------------radial velocity---------------------------------------
     line = "!"
@@ -109,7 +109,7 @@ program BEMT_Pedrinho
         line = trim_front(line)
     end do
     read(line, *) planar_velocity_m_s 
-    write(*, *) planar_velocity_m_s
+    ! write(*, *) planar_velocity_m_s
 
    !----------------------------------------rpm---------------------------------------------------
     line = "!"
@@ -118,7 +118,7 @@ program BEMT_Pedrinho
         line = trim_front(line)
     end do
     read(line, *) rpm 
-    write(*, *) rpm
+    ! write(*, *) rpm
 
    !----------------------------------------Air density-------------------------------------------
     line = "!"
@@ -127,7 +127,7 @@ program BEMT_Pedrinho
         line = trim_front(line)
     end do
     read(line, *) rho_kg_m3
-    write(*, *) rho_kg_m3
+    ! write(*, *) rho_kg_m3
 
  !===============================================ITERATE============================================
 
