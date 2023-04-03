@@ -1,0 +1,5 @@
+-> As certificações de noise levels são feitas com 24 bandas de 1/3 em vez de todas as 32 possíveis, enquanto as bandas originais vão de 16 a 20K, as de certificação usam as de 50 a 10K
+-> O cálculo de EPNL que é usado em certificações leva em conta três pontos principais: nível do barulho, distribuição de frequência e duração
+	-> Uma adaptação boa seria usar apenas os níveis de barulho e a correção de frequencia, o que resultaria na variável PNLT (Perceived Noise Level Tone-corrected)
+-> Para somar dois níveis de dB é necessário transformar em intensidade como demonstrado no link abaixo
+	-> https://personalpages.manchester.ac.uk/staff/richard.baker/BasicAcoustics/5_addition_of_sound_intensities.html#:~:text=If%20we%20have%20more%20than,of%20approximately%2087.5%20dB%20SPL.
