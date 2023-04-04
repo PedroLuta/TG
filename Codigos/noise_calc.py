@@ -49,5 +49,31 @@ def broadband_noise(TotalBladeArea_m2, AverageBladeCL_adim, TotalThrust_N, TipSp
         i += 1
     return BandsEvaluated, SoundPressureLevelAtOneThirdBandAfterCorrection
 
+def SumSoundPressureLevels(SoundPressureLevel1_dB, SoundPressureLevel2_dB):
+    # Method based on https://personalpages.manchester.ac.uk/staff/richard.baker/BasicAcoustics/index.html
+    Intensity1_W_m2 = (10**(-12))*(10**(SoundPressureLevel1_dB/10))
+    Intensity2_W_m2 = (10**(-12))*(10**(SoundPressureLevel2_dB/10))
+
+    IntensitySum_W_m2 = Intensity1_W_m2 + Intensity2_W_m2
+
+    SoundPressureLevelSum_dB = 10*math.log10(IntensitySum_W_m2/(10**(-12)))
+
+    return(SoundPressureLevelSum_dB)
+
+def SumMultipleSoundPressureLevels(SoundPressureLevelVec_dB):
+    # Method based on https://personalpages.manchester.ac.uk/staff/richard.baker/BasicAcoustics/index.html
+    IntensitiesSum = 0
+    for i in range(len(SoundPressureLevelVec_dB)):
+        IntensitiesSum += 10**(SoundPressureLevelVec_dB[i]/10)
+
+    return 10*math.log10(IntensitiesSum)
+
+def CalculatePNLTFromSPLDistribution(SPLFullDistribution_dB_Hz):
+    for i in range(5, 29):
+        pass
+
 # broadband_noise(18.6, 0.438, 69420, 208, 61.6, 85) #Example 1 main rotor on tm-80200
-print(broadband_noise(3.44, 0.182, 5206, 202, 62.2, 10)) #Example 1 tail rotor on tm-80200
+# print(broadband_noise(3.44, 0.182, 5206, 202, 62.2, 10)) #Example 1 tail rotor on tm-80200
+
+print(SumSoundPressureLevels(80, 80))
+print(SumMultipleSoundPressureLevels([80, 80, 80, 80]))
