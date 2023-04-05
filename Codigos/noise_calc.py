@@ -68,7 +68,7 @@ def SumMultipleSoundPressureLevels(SoundPressureLevelVec_dB):
 
     return 10*math.log10(IntensitiesSum)
 
-def CalculatePNLTFromSPLDistribution(SPLFullDistribution_dB_Hz):
+def CalculatePerceivedNoiseLevelToneCorrectedFromSoundPressureLevelDistribution(SPLFullDistribution_dB_Hz):
     # Only consider the bands from 50 (index 5) to 10K (index 28) Hz
     NoyTable = [[ 1,    50,      91.0,   64,   52,   49,   55, 0.043478, 0.030103, 0.079520, 0.058098],\
                 [ 2,    63,      85.9,   60,   51,   44,   51, 0.040570, 0.030103, 0.068160, 0.058098],\
@@ -95,9 +95,8 @@ def CalculatePNLTFromSPLDistribution(SPLFullDistribution_dB_Hz):
                 [23,  8000,      44.3,   37,   34,   17,   23, 0.042285, 0.029960, 0.079520, 0.037349],\
                 [24, 10000,      50.7,   41,   37,   21,   29, 0.042285, 0.029960, 0.059640, 0.043573]]
     
-    NoyValues = []
+    PerceivedNoisiness = []
     for i in range(5, 29):  # index from full 32 Band SPL
-        print(i)
         j = i - 5           # index from 24 Band SPL
         if (SPLFullDistribution_dB_Hz[i] >= NoyTable[j][2]): 
             #SPLa
@@ -113,8 +112,15 @@ def CalculatePNLTFromSPLDistribution(SPLFullDistribution_dB_Hz):
             Noy = 0.1*(10**(NoyTable[j][9]*(SPLFullDistribution_dB_Hz[i] - NoyTable[j][5])))
         else:
             Noy = SPLFullDistribution_dB_Hz[i]
-        NoyValues.append(Noy)
-    return NoyValues
+        PerceivedNoisiness.append(Noy)
+    
+    TotalPerceivedNoisiness = 0.85*max(PerceivedNoisiness)
+    for PN in PerceivedNoisiness:
+        TotalPerceivedNoisiness += 0.15*PN
+
+    PerceivedNoiseLevel = 40.0 + ((10*math.log10(TotalPerceivedNoisiness))/math.log10(2))
+
+    return PerceivedNoiseLevel
 
     #   j + 1,    Hz, SPLa, SPLb, SPLc, SPLd, SPLe,       Mb,       Mc,       Md,       Me
     #    [[ 1,    50, 91.0,   64,   52,   49,   55, 0.043478, 0.030103, 0.079520, 0.058098],
@@ -143,7 +149,7 @@ def CalculatePNLTFromSPLDistribution(SPLFullDistribution_dB_Hz):
     #     [24, 10000, 50.7,   41,   37,   21,   29, 0.042285, 0.029960, 0.059640, 0.043573]]
 
 bands, spl = broadband_noise(18.6, 0.438, 69420, 208, 61.6, 85) #Example 1 main rotor on tm-80200
-print(CalculatePNLTFromSPLDistribution([80]*32))
+print(CalculatePerceivedNoiseLevelToneCorrectedFromSoundPressureLevelDistribution([80]*32))
 # print(broadband_noise(3.44, 0.182, 5206, 202, 62.2, 10)) #Example 1 tail rotor on tm-80200
 
 #print(SumSoundPressureLevels(80, 80))
