@@ -1,6 +1,47 @@
--> As certificações de noise levels são feitas com 24 bandas de 1/3 em vez de todas as 32 possíveis, enquanto as bandas originais vão de 16 a 20K, as de certificação usam as de 50 a 10K
--> O cálculo de EPNL que é usado em certificações leva em conta três pontos principais: nível do barulho, distribuição de frequência e duração
-	-> Uma adaptação boa seria usar apenas os níveis de barulho e a correção de frequencia, o que resultaria na variável PNLT (Perceived Noise Level Tone-corrected)
--> Para somar dois níveis de dB é necessário transformar em intensidade como demonstrado no link abaixo
-	-> https://personalpages.manchester.ac.uk/staff/richard.baker/BasicAcoustics/5_addition_of_sound_intensities.html#:~:text=If%20we%20have%20more%20than,of%20approximately%2087.5%20dB%20SPL.
+-> https://personalpages.manchester.ac.uk/staff/richard.baker/BasicAcoustics
 -> Thaynan vai mandar artigos de verificação de PNL
+
+
+
+
+0 - [ ] Definir método de simulação
+	[ ] BEMT no python (sem edgewise)?
+		[x] implementado
+	[ ] BEMT no python (com edgewise)?
+		[ ] implementado
+	[ ] BEMT em fortran (com edgewise)?
+		[ ] implementado
+0 - [ ] Funções Objetivo
+    [x] Tração a potência fixa (motor comercial)
+    	[ ] implementado
+    [x] Ruído (rodar com os dois, mas um de cada vez)
+    	[x] PNLT
+    	    [ ] implementado
+    	[x] OASPL A-weighted
+    	    [ ] implementado
+0 - [ ] Casos de simulação
+    [ ] FAA - Subida?
+        [ ] implementado
+    [ ] FAA - Overfly?
+        [ ] implementado
+    [ ] FAA - Descida?
+        [ ] implementado
+    [ ] Hover?
+    	[ ] implementado
+0 - [ ] Definir variáveis de projeto
+    [x] Distribuição polinomial de corda
+    	[ ] implementado
+    [x] Passo simples
+    	[x] implementado
+    [ ] Aerofólio?
+    	[ ] implementado
+    [x] Número de pás (como considerar??? - rodar casos diferentes um com cada número de pás)
+0 - [x] Definir método de otimização
+    [x] NSGA2
+    [x] Gradiente (apenas se der tempo)
+1 - [ ] Fazer testes de tempo de rodada 
+	[ ] funções objetivo 
+	[ ] algoritmo de otimização
+
+
+
