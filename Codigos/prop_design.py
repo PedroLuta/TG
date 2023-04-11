@@ -215,6 +215,12 @@ def simple_pitch(r_vector, Pitch): #All values in meters
         Beta_dist.append(math.degrees(math.atan(Pitch/(2*pi*rr))))
     return Beta_dist
 
+def ApplyColective(PitchVec, Collective):
+    #It is expected that the Pitch vector values and Collective value are given in the same dimension
+    CopyPitchVec = PitchVec.copy()
+    for i in range(len(CopyPitchVec)):
+        CopyPitchVec[i] = CopyPitchVec[i] + Collective
+    return CopyPitchVec
 
 
 

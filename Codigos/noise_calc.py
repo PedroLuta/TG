@@ -201,6 +201,40 @@ class OneThirdSpectrum:
     def PNLT(self):
         return self.PNL() + self.ToneCorrection()
 
+    def AWeigthed(self):
+        Ra = []
+        Ra1k = (12194**2)*(1000**4)/(((1000**2) + (20.6**2))*((((1000**2) + (107.7**2))*((1000**2) + (737.9**2)))**0.5)*((1000**2) + (12194**2)))
+        for Band_Hz in self.CentralBands_Hz:
+            Ra.append((12194**2)*(Band_Hz**4)/(((Band_Hz**2) + (20.6**2))*((((Band_Hz**2) + (107.7**2))*((Band_Hz**2) + (737.9**2)))**0.5)*((Band_Hz**2) + (12194**2))))
+        
+        Gain_dB = []
+        for RaValue in Ra:
+            Gain_dB.append((20*math.log10(RaValue)) - (20*math.log10(Ra1k)))
+        
+        AWeightedSPL_dB = []
+        for i in range(len(self.Spectrum_dB)):
+            if (np.isnan(self.Spectrum_dB[i])):
+                AWeightedSPL_dB.append(max([Gain_dB[i], 0]))
+            else:
+                AWeightedSPL_dB.append(max([self.Spectrum_dB[i] + Gain_dB[i], 0]))
+        
+        return AWeightedSPL_dB
+    
+    def AWeightedOASPL(self):
+        AWeightedSpectrum = self.AWeigthed()
+        IntensitiesSum = 0
+        for i in range(len(AWeightedSpectrum)):
+            if (not np.isnan(self.Spectrum_dB[i])):
+                IntensitiesSum += 10**(AWeightedSpectrum[i]/10)
+        return 10*math.log10(IntensitiesSum)
+    
+    def OASPL(self):
+        IntensitiesSum = 0
+        for i in range(len(self.Spectrum_dB)):
+            if (not np.isnan(self.Spectrum_dB[i])):
+                IntensitiesSum += 10**(self.Spectrum_dB[i]/10)
+        return 10*math.log10(IntensitiesSum)
+
 def broadband_noise(TotalBladeArea_m2, AverageBladeCL_adim, TotalThrust_N, TipSpeed_m_s, DistanceToObserver_m, AngleNegativeThrustToObserverPositionVector_deg):
     PeakFrequency = (-240*math.log10(TotalThrust_N)) + (2.448*TipSpeed_m_s) + 942
 
@@ -301,11 +335,13 @@ def SumMultipleSoundPressureLevels(SoundPressureLevelVec_dB):
 
 
 Spectre = OneThirdSpectrum()
-print(Spectre.Spectrum_dB)
-Spectre.SumToSpectrum([20, 125], [80, 80])
-print(Spectre.Spectrum_dB)
-Spectre.SumToSpectrum([20, 125], [80, 80])
-print(Spectre.Spectrum_dB)
-print(Spectre.PNL())
-print(Spectre.ToneCorrection())
-print(Spectre.PNLT())
+# print(Spectre.Spectrum_dB)
+# Spectre.SumToSpectrum([20, 125, 10000], [65, 70, 68])
+# print(Spectre.Spectrum_dB)
+# Spectre.SumToSpectrum([20, 125], [80, 80])
+# print(Spectre.Spectrum_dB)
+# print(Spectre.PNL())
+# print(Spectre.ToneCorrection())
+# print(Spectre.PNLT())
+# print(Spectre.OASPL())
+print(10*math.log10(1))

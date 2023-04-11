@@ -6,35 +6,51 @@
 
 0 - [ ] Definir método de simulação
 	[ ] BEMT no python (sem edgewise)?
-		[x] implementado
+	    [x] implementado
+		[x] verificado
 	[ ] BEMT no python (com edgewise)?
 		[ ] implementado
+		[ ] verificado
 	[ ] BEMT em fortran (com edgewise)?
 		[ ] implementado
+		[ ] verificado
 0 - [ ] Funções Objetivo
     [x] Tração a potência fixa (motor comercial)
     	[ ] implementado
+	[ ] verificado
     [x] Ruído (rodar com os dois, mas um de cada vez)
     	[x] PNLT
-    	    [ ] implementado
+    	    	[x] implementado
+		[ ] verificado
     	[x] OASPL A-weighted
-    	    [ ] implementado
+    	    	[x] implementado
+		[ ] verificado
 0 - [ ] Casos de simulação
     [ ] FAA - Subida?
         [ ] implementado
+	[ ] verificado
     [ ] FAA - Overfly?
         [ ] implementado
+	[ ] verificado
     [ ] FAA - Descida?
         [ ] implementado
+	[ ] verificado
     [ ] Hover?
     	[ ] implementado
-0 - [ ] Definir variáveis de projeto
+	[ ] verificado
+0 - [ ] Variáveis de projeto
     [x] Distribuição polinomial de corda
     	[ ] implementado
+	[ ] verificado
     [x] Passo simples
     	[x] implementado
-    [ ] Aerofólio?
-    	[ ] implementado
+	[x] verificado
+    [x] Coletivo
+	[x] implementado
+	[x] verificado
+    [0] Aerofólio?
+    	[x] implementado
+	[x] verificado
     [x] Número de pás (como considerar??? - rodar casos diferentes um com cada número de pás)
 0 - [x] Definir método de otimização
     [x] NSGA2
