@@ -235,7 +235,7 @@ class OneThirdSpectrum:
                 IntensitiesSum += 10**(self.Spectrum_dB[i]/10)
         return 10*math.log10(IntensitiesSum)
 
-def broadband_noise(TotalBladeArea_m2, AverageBladeCL_adim, TotalThrust_N, TipSpeed_m_s, DistanceToObserver_m, AngleNegativeThrustToObserverPositionVector_deg):
+def BroadbandNoise(TotalBladeArea_m2, AverageBladeCL_adim, TotalThrust_N, TipSpeed_m_s, DistanceToObserver_m, AngleNegativeThrustToObserverPositionVector_deg):
     PeakFrequency = (-240*math.log10(TotalThrust_N)) + (2.448*TipSpeed_m_s) + 942
 
     #ONLY WORKS FOR AVERAGE CL < 0.48
@@ -305,6 +305,42 @@ def broadband_noise(TotalBladeArea_m2, AverageBladeCL_adim, TotalThrust_N, TipSp
         i += 1
     return BandsEvaluated, SoundPressureLevelAtOneThirdBandAfterCorrection
 
+def RotationalNoiseSteadyUnsteadyLoading(NumberOfBlades, ForwardMach, BladeTipMach, RotorSpeed_1_s, DistanceToObserver_m, RotorRadius_m, EffectiveRotorRadius_m, TotalThrust_N, AngleRotorPlaneToObserverPositionVector_deg, RotorAzimuth_deg):
+    if ((AngleRotorPlaneToObserverPositionVector_deg < 0) or (AngleRotorPlaneToObserverPositionVector_deg > 80)):
+        print("Angle to observer out of bounds")
+
+    EffectiveTipMach = (BladeTipMach + (ForwardMach*math.sin(math.radians(RotorAzimuth_deg))))/(1 - (ForwardMach*math.cos(math.radians(AngleRotorPlaneToObserverPositionVector_deg))))
+    if ((EffectiveTipMach > 0.9) or (EffectiveTipMach < 0.5)):
+        print("Effective Mach out of bounds")
+
+    HarmonicValues_Hz = []
+    Harmonics = range(1, 32)
+    HarmonicsUsed = []
+    for Harmonic in Harmonics:
+        HarmonicValue_Hz = Harmonic*NumberOfBlades*RotorSpeed_1_s/(1 - (ForwardMach*math.cos(math.radians(AngleRotorPlaneToObserverPositionVector_deg))))
+        if (HarmonicValue_Hz < 13.9): #lowest frequency supported by one-third octave bands
+            continue
+        
+        if (HarmonicValue_Hz > 22627.4): #highest frequency supported by one-third octave bands
+            break
+        HarmonicValues_Hz.append(HarmonicValue_Hz)
+        HarmonicsUsed.append(Harmonic)
+
+    DeltaSPL = []
+    for Harmonic in HarmonicsUsed:
+        pass
+    
+
+    
+
+
+def CalculateRotorEffectiveRadius(ThrustCoefficient, RotorRadius_m):
+    #Method Based on Helicopter Performance, Stability and Control - RAYMOND W. PROUlY (1986), pgs. 34 and 71
+    if (ThrustCoefficient <= 0.006):
+        return RotorRadius_m*(1 - (0.06/RotorRadius_m))
+    else:
+        return RotorRadius_m*(1 - ((((2.27*ThrustCoefficient) - 0.01)**0.5)/RotorRadius_m))
+
 def SumSoundPressureLevels(SoundPressureLevel1_dB, SoundPressureLevel2_dB):
     # Method based on https://personalpages.manchester.ac.uk/staff/richard.baker/BasicAcoustics/index.html
     Intensity1_W_m2 = (10**(-12))*(10**(SoundPressureLevel1_dB/10))
@@ -325,16 +361,16 @@ def SumMultipleSoundPressureLevels(SoundPressureLevelVec_dB):
     return 10*math.log10(IntensitiesSum)
 
 
-#bands, spl = broadband_noise(18.6, 0.438, 69420, 208, 61.6, 85) #Example 1 main rotor on tm-80200
+#bands, spl = BroadbandNoise(18.6, 0.438, 69420, 208, 61.6, 85) #Example 1 main rotor on tm-80200
 # print(CalculatePNLT([int(input("SPL: "))]*24))
 # print(CalculatePNLT([16.0, 20.0, 25.0, 31.5, 40.0, 50.0, 63.0, 80.0, 100.0, 125.0, 160.0, 200.0, 250.0, 315.0, 400.0, 500.0, 630.0, 800.0, 1000.0, 1250.0, 1600.0, 2000.0, 2500.0, 3150.0, 4000.0, 5000.0, 6300.0, 8000.0, 10000.0, 12500.0, 16000.0, 20000.0]))
-# print(broadband_noise(3.44, 0.182, 5206, 202, 62.2, 10)) #Example 1 tail rotor on tm-80200
+# print(BroadbandNoise(3.44, 0.182, 5206, 202, 62.2, 10)) #Example 1 tail rotor on tm-80200
 
 #print(SumSoundPressureLevels(80, 80))
 #print(SumMultipleSoundPressureLevels([80, 80, 80, 80]))
 
 
-Spectre = OneThirdSpectrum()
+# Spectre = OneThirdSpectrum()
 # print(Spectre.Spectrum_dB)
 # Spectre.SumToSpectrum([20, 125, 10000], [65, 70, 68])
 # print(Spectre.Spectrum_dB)
@@ -344,4 +380,4 @@ Spectre = OneThirdSpectrum()
 # print(Spectre.ToneCorrection())
 # print(Spectre.PNLT())
 # print(Spectre.OASPL())
-print(10*math.log10(1))
+# print(10*math.log10(1))
