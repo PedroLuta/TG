@@ -5,7 +5,7 @@
 
 
 0 - [ ] Definir método de simulação
-	[ ] BEMT no python (sem edgewise)?
+	[x] BEMT no python (sem edgewise)?
 	    [x] implementado
 		[x] verificado
 	[ ] BEMT no python (com edgewise)?
@@ -17,6 +17,9 @@
 0 - [ ] Funções Objetivo
     [x] Tração a potência fixa (motor comercial)
     	[ ] implementado
+	[ ] verificado
+    [ ] Potência à tração fixa
+	[ ] implementado
 	[ ] verificado
     [x] Ruído (rodar com os dois, mas um de cada vez)
     	[x] PNLT
@@ -54,7 +57,9 @@
     [x] Número de pás (como considerar??? - rodar casos diferentes um com cada número de pás)
 0 - [x] Definir método de otimização
     [x] NSGA2
-    [x] Gradiente (apenas se der tempo)
+	[x] implementado
+	[x] verificado
+    [ ] Gradiente (apenas se der tempo)
 1 - [ ] Fazer testes de tempo de rodada 
 	[ ] funções objetivo 
 	[ ] algoritmo de otimização
