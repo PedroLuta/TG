@@ -2,64 +2,62 @@
 -> Thaynan vai mandar artigos de verificação de PNL
 
 
-
-
 0 - [ ] Definir método de simulação
 	[x] BEMT no python (sem edgewise)?
 	    [x] implementado
 		[x] verificado
-	[ ] BEMT no python (com edgewise)?
-		[ ] implementado
-		[ ] verificado
-	[ ] BEMT em fortran (com edgewise)?
-		[ ] implementado
-		[ ] verificado
+	[-] BEMT no python (com edgewise)?
+		[-] implementado
+		[-] verificado
+	[-] BEMT em fortran (com edgewise)?
+		[-] implementado
+		[-] verificado
 0 - [ ] Funções Objetivo
-    [x] Tração a potência fixa (motor comercial)
-    	[ ] implementado
-	[ ] verificado
-    [ ] Potência à tração fixa
-	[ ] implementado
-	[ ] verificado
+    [-] Tração a potência fixa (motor comercial)
+    	[-] implementado
+		[-] verificado
+    [x] Potência à tração fixa
+		[ ] implementado
+		[ ] verificado
     [x] Ruído (rodar com os dois, mas um de cada vez)
     	[x] PNLT
-    	    	[x] implementado
-		[ ] verificado
+    	    [x] implementado
+			[ ] verificado
     	[x] OASPL A-weighted
-    	    	[x] implementado
-		[ ] verificado
+    	    [x] implementado
+			[x] verificado
 0 - [ ] Casos de simulação
-    [ ] FAA - Subida?
-        [ ] implementado
-	[ ] verificado
-    [ ] FAA - Overfly?
-        [ ] implementado
-	[ ] verificado
-    [ ] FAA - Descida?
-        [ ] implementado
-	[ ] verificado
-    [ ] Hover?
+    [-] FAA - Subida?
+        [-] implementado
+		[-] verificado
+    [-] FAA - Overfly?
+        [-] implementado
+		[-] verificado
+    [-] FAA - Descida?
+        [-] implementado
+		[-] verificado
+    [x] Hover baseado na FAA
     	[ ] implementado
-	[ ] verificado
-0 - [ ] Variáveis de projeto
+		[ ] verificado
+0 - [x] Variáveis de projeto
     [x] Distribuição polinomial de corda
-    	[ ] implementado
-	[ ] verificado
+    	[x] implementado
+		[x] verificado
     [x] Passo simples
     	[x] implementado
-	[x] verificado
+		[x] verificado
     [x] Coletivo
-	[x] implementado
-	[x] verificado
-    [0] Aerofólio?
+		[x] implementado
+		[x] verificado
+    [-] Aerofólio?
     	[x] implementado
-	[x] verificado
+		[x] verificado
     [x] Número de pás (como considerar??? - rodar casos diferentes um com cada número de pás)
 0 - [x] Definir método de otimização
     [x] NSGA2
-	[x] implementado
-	[x] verificado
-    [ ] Gradiente (apenas se der tempo)
+		[x] implementado
+		[x] verificado
+    [-] Gradiente (apenas se der tempo)
 1 - [ ] Fazer testes de tempo de rodada 
 	[ ] funções objetivo 
 	[ ] algoritmo de otimização
