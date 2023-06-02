@@ -460,16 +460,16 @@ x, y = RotationalNoiseSteadyUnsteadyLoading(2, 0, 0.9, 47.2, 3.14, 1.05, .934, 4
 print(x[:4])
 print(y[:4])
 
-# def SumSoundPressureLevels(SoundPressureLevel1_dB, SoundPressureLevel2_dB):
-#     # Method based on https://personalpages.manchester.ac.uk/staff/richard.baker/BasicAcoustics/index.html
-#     Intensity1_W_m2 = (10**(-12))*(10**(SoundPressureLevel1_dB/10))
-#     Intensity2_W_m2 = (10**(-12))*(10**(SoundPressureLevel2_dB/10))
+def SumSoundPressureLevels(SoundPressureLevel1_dB, SoundPressureLevel2_dB):
+    # Method based on https://personalpages.manchester.ac.uk/staff/richard.baker/BasicAcoustics/index.html
+    Intensity1_W_m2 = (10**(-12))*(10**(SoundPressureLevel1_dB/10))
+    Intensity2_W_m2 = (10**(-12))*(10**(SoundPressureLevel2_dB/10))
 
-#     IntensitySum_W_m2 = Intensity1_W_m2 + Intensity2_W_m2
+    IntensitySum_W_m2 = Intensity1_W_m2 + Intensity2_W_m2
 
-#     SoundPressureLevelSum_dB = 10*math.log10(IntensitySum_W_m2/(10**(-12)))
+    SoundPressureLevelSum_dB = 10*math.log10(IntensitySum_W_m2/(10**(-12)))
 
-#     return(SoundPressureLevelSum_dB)
+    return(SoundPressureLevelSum_dB)
 
 # def SumMultipleSoundPressureLevels(SoundPressureLevelVec_dB):
 #     # Method based on https://personalpages.manchester.ac.uk/staff/richard.baker/BasicAcoustics/index.html

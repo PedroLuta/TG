@@ -2,6 +2,7 @@
 import math
 import numpy as np
 import xfoil_interface
+import pandas as pd
 
 euler = np.e
 pi = np.pi
@@ -69,7 +70,34 @@ def momentum_Ftip_fixed_pitch(vi, radps, Blades, R, r_vector, Beta_dist, chord_d
 
     return dT_vector, dQ_vector
 
+def BEMT_PrePolars(vi, radps, Blades, R, r_vector, Beta_dist, chord_dist, CLPolar = 'TestCLPolar.dat', CDPolar = 'TestCDPolar.dat', rho = 1.225, dvisc = 1.8/100000):
+    kvisc = dvisc/rho
 
+    dT_vector = []
+    dQ_vector = []
+
+    for i in range(len(r_vector)):
+        rr = r_vector[i]
+        chord = chord_dist[i]
+        Beta = Beta_dist[i]
+
+        Vr = radps*rr
+        V = ((Vr**2)+(vi**2))**0.5
+        Re = ((V*chord)/kvisc)
+
+        CLPolars = pd.read_table(CLPolar)
+        CDPolars = pd.read_table(CDPolar)
+
+        alpha_c, Cl_c = GetInterpolatedPolarFromPolars(CLPolars, Re)
+        alpha_c, Cd_c = GetInterpolatedPolarFromPolars(CDPolars, Re)
+
+        # alpha_c, Cl_c, Cd_c = xfoil_interface.get_curve_com_default(Re, a1, a2, astep, afile = airfoil)
+
+        dT, dQ = induction_momentum_Ftip_fixed_pitch(radps, rr, Cl_c, Cd_c, alpha_c, Beta, Blades, rho, R, chord, vi) 
+        dQ_vector.append(dQ)
+        dT_vector.append(dT)
+
+    return dT_vector, dQ_vector
 
 
 
@@ -122,6 +150,8 @@ def induction_momentum_Ftip_fixed_pitch(radps, rr, Cl_c, Cd_c, alpha_c, Beta, Bl
     check = 0
     ai = 0.1
     ai0 = 0.01
+    ai_new = ai
+    ai0_new = ai0
 
     while True:
         Vr = radps*rr*(1-ai0)
@@ -132,14 +162,21 @@ def induction_momentum_Ftip_fixed_pitch(radps, rr, Cl_c, Cd_c, alpha_c, Beta, Bl
         alpha = Beta - math.degrees(phi)
         Cl, Cd = find_alpha_interval_return_CL_CD(alpha_c, Cl_c, Cd_c, alpha)
 
-        exp_func = (-Blades/2)*((R-rr)/rr)*(V/Vax)
-        F_tip = (2/pi)*math.acos(euler**exp_func)
+        if Vax == 0:
+            F_tip = 1
+        else:
+            exp_func = (-Blades/2)*((R-rr)/rr)*(V/Vax)
+            F_tip = (2/pi)*math.acos(euler**exp_func)
 
         dT = (rho*(V**2)/2)*(Cl*math.cos(phi)-Cd*math.sin(phi))*(Blades*chord)
         dQ = (rho*(V**2)/2)*(Cl*math.sin(phi)+Cd*math.cos(phi))*(Blades*chord)*rr
 
-        ai_new = dT/(4*pi*rr*rho*Vax*Vax_before*F_tip) #
-        ai0_new = dQ/(4*pi*rr*rho*Vax*(radps*rr)*F_tip*rr) #
+        if Vax == 0:
+            ai_new += 0.01
+            ai0_new += 0.001
+        else:
+            ai_new = dT/(4*pi*rr*rho*Vax*Vax_before*F_tip) #
+            ai0_new = dQ/(4*pi*rr*rho*Vax*(radps*rr)*F_tip*rr) #
 
         ai_middle = (ai_new + ai)/2
         ai0_middle = (ai0_new + ai0)/2
@@ -213,6 +250,33 @@ def linear_interpolate(x0, x1, y0, y1, x):
         return (y0 + y1)/2
     return y0 + ((x - x0)*(y1 - y0)/(x1 - x0))
 
+def InterpolateCurves(ValueCurve1, ValueCurve2, Curve1, Curve2, ValueWanted):
+    Curve3 = []
+    for i in range(len(Curve1)):
+        Curve3.append(linear_interpolate(ValueCurve1, ValueCurve2, Curve1[i], Curve2[i], ValueWanted))
+    return Curve3
+
+def GetInterpolatedPolarFromPolars(PolarsDF, WantReynolds):
+    if WantReynolds < int(PolarsDF.columns[1]):
+        Polar = PolarsDF[PolarsDF.columns[1]].tolist()
+    elif WantReynolds > int(PolarsDF.columns[-1]):
+        Polar = PolarsDF[PolarsDF.columns[-1]].tolist()
+    else:
+        for i in range(len(PolarsDF.columns) - 2):
+            key1 = PolarsDF.columns[i + 1]
+            key2 = PolarsDF.columns[i + 2]
+            if int(key1) < WantReynolds and int(key2) > WantReynolds: 
+                Polar = InterpolateCurves(int(key1), int(key2), PolarsDF[key1], PolarsDF[key2], WantReynolds)
+                break
+            elif int(key1) == WantReynolds:
+                Polar = PolarsDF[key1].tolist()
+                break
+            elif int(key2) == WantReynolds:
+                Polar = PolarsDF[key2].tolist()
+                break
+    alphas = PolarsDF["alpha"].tolist()
+    return alphas, Polar
+
 
 def calculate_most_eff_alpha(a_list, cl_list, cd_list):
     a, cl, cd = 0, 0, 1
@@ -225,3 +289,6 @@ def calculate_most_eff_alpha(a_list, cl_list, cd_list):
             a, cl, cd = a_list[i], cl_list[i], cd_list[i]
             clcd_remember = clcd_try
     return a, cl, cd
+
+BEMT_PrePolars(0, 4000, 2, 0.3, [0.25, 0.5, 0.75, 0.99], [30, 20, 10, 0], [0.3*0.1, 0.3*0.2, 0.3*0.2, 0.3*0.1])
+
