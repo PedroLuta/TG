@@ -319,6 +319,64 @@ def GetInterpolatedPolarFromPolars(PolarsDF, WantReynolds):
     alphas = PolarsDF["alpha"].tolist()
     return alphas, Polar
 
+def GeneratePolars(Airfoil, ReynoldsList, LowerAlpha, UpperAlpha, AlphaStep):
+    AlphaCurvesList = []
+    ClCurvesList = []
+    CdCurvesList = []
+    OutReynoldsList = []
+    for Reynolds in ReynoldsList:
+        a, cl, cd = xfoil_interface.get_curve_com_default(Reynolds, LowerAlpha, UpperAlpha, AlphaStep, afile = Airfoil)
+        if len(a) == 0:
+            continue
+        else:
+            AlphaCurvesList.append(a)
+            ClCurvesList.append(cl)
+            CdCurvesList.append(cd)
+            OutReynoldsList.append(Reynolds)
+
+    MaxAlphaLower = -math.inf
+    MinAlphaUpper = math.inf
+    for AlphaCurve in AlphaCurvesList:
+        if AlphaCurve[0] > MaxAlphaLower:
+            MaxAlphaLower = AlphaCurve[0]
+        if AlphaCurve[-1] < MinAlphaUpper:
+            MinAlphaUpper = AlphaCurve[-1]
+
+    for i in range(len(AlphaCurvesList)):
+        j = 0
+        while j < len(AlphaCurvesList[i]) - 1:
+            if abs(AlphaCurvesList[i][j] - AlphaCurvesList[i][j + 1]) > AlphaStep:
+                ClCurvesList[i].insert(j + 1, linear_interpolate(AlphaCurvesList[i][j], AlphaCurvesList[i][j + 1], ClCurvesList[i][j], ClCurvesList[i][j + 1], AlphaCurvesList[i][j] + AlphaStep))
+                CdCurvesList[i].insert(j + 1, linear_interpolate(AlphaCurvesList[i][j], AlphaCurvesList[i][j + 1], CdCurvesList[i][j], CdCurvesList[i][j + 1], AlphaCurvesList[i][j] + AlphaStep))
+                AlphaCurvesList[i].insert(j + 1, AlphaCurvesList[i][j] + AlphaStep)
+            if (AlphaCurvesList[i][j] > MinAlphaUpper) or (AlphaCurvesList[i][j] < MaxAlphaLower):
+                ClCurvesList[i].pop(j)
+                CdCurvesList[i].pop(j)
+                AlphaCurvesList[i].pop(j)
+                j -= 1
+            if (AlphaCurvesList[i][j + 1] > MinAlphaUpper) or (AlphaCurvesList[i][j + 1] < MaxAlphaLower):
+                ClCurvesList[i].pop(j + 1)
+                CdCurvesList[i].pop(j + 1)
+                AlphaCurvesList[i].pop(j + 1)
+                j -= 1
+            j += 1
+    return AlphaCurvesList, ClCurvesList, CdCurvesList, OutReynoldsList
+
+def WritePolar(PolarFileName, ReynoldsList, AlphaCurvesList, PolarCurvesList):
+    with open(PolarFileName, 'w') as OutFile:
+        ReynoldsOutput = ''
+        for i in range(len(ReynoldsList)):
+            ReynoldsOutput += f'{round(ReynoldsList[i], 0)}\t'
+        OutFile.write(f"alpha\t{ReynoldsOutput}\n")
+        for i in range(len(AlphaCurvesList[0])):
+            first = True
+            Output = ''
+            for j in range(len(AlphaCurvesList)):
+                if first:
+                    Output += f'{AlphaCurvesList[j][i]}\t'
+                    first = False
+                Output += f'{round(PolarCurvesList[j][i], 5)}\t'
+            OutFile.write(f'{Output}\n')
 
 def calculate_most_eff_alpha(a_list, cl_list, cd_list):
     a, cl, cd = 0, 0, 1
@@ -333,7 +391,17 @@ def calculate_most_eff_alpha(a_list, cl_list, cd_list):
     return a, cl, cd
 
 # BEMT_PrePolars(0.00001, 4000, 2, 0.3, [0.25, 0.5, 0.75, 0.99], [30, 20, 10, 0], [0.3*0.1, 0.3*0.2, 0.3*0.2, 0.3*0.1])
-dT_vector, dQ_vector, r_vector, Re_vector, WA_vector, Cl_vector, Cd_vector = qprop_PrePolars(0, 2000, 2, 0.3, [0.25*0.3, 0.5*0.3, 0.75*0.3, 0.99*0.3], [30, 20, 10, 0], [0.3*0.1, 0.3*0.2, 0.3*0.2, 0.3*0.1])
+# dT_vector, dQ_vector, r_vector, Re_vector, WA_vector, Cl_vector, Cd_vector = qprop_PrePolars(0, 2000, 2, 0.3, [0.25*0.3, 0.5*0.3, 0.75*0.3, 0.99*0.3], [30, 20, 10, 0], [0.3*0.1, 0.3*0.2, 0.3*0.2, 0.3*0.1])
 
-x = np.trapz(dT_vector, [0.25*0.3, 0.5*0.3, 0.75*0.3, 0.99*0.3])
-print(x)
+# x = np.trapz(dT_vector, [0.25*0.3, 0.5*0.3, 0.75*0.3, 0.99*0.3])
+# print(x)
+
+# ReynoldsList = [50000*i for i in range(2, 6)]
+# ReynoldsList.extend([250000*i for i in range(2, 5)])
+# ReynoldsList.extend([1000000*i for i in range(2, 5)])
+
+# AlphaCurvesList, ClCurvesList, CdCurvesList, OutReynoldsList = GeneratePolars(Airfoil = "clarky.dat", ReynoldsList = ReynoldsList, LowerAlpha = -10, UpperAlpha = 15, AlphaStep = 1)
+
+# WritePolar("ClarkYAutoClPolar3.dat", OutReynoldsList, AlphaCurvesList, ClCurvesList)
+# WritePolar("ClarkYAutoCdPolar3.dat", OutReynoldsList, AlphaCurvesList, CdCurvesList)
+
