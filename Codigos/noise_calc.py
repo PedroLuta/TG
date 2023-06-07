@@ -456,9 +456,9 @@ def LinearInterpolate(x0, x1, y0, y1, x):
         return (y0 + y1)/2
     return y0 + ((x - x0)*(y1 - y0)/(x1 - x0))
 
-x, y = RotationalNoiseSteadyUnsteadyLoading(2, 0, 0.9, 47.2, 3.14, 1.05, .934, 485, 0, 0)
-print(x[:4])
-print(y[:4])
+# x, y = RotationalNoiseSteadyUnsteadyLoading(2, 0, 0.9, 47.2, 3.14, 1.05, .934, 485, 0, 0)
+# print(x[:4])
+# print(y[:4])
 
 def SumSoundPressureLevels(SoundPressureLevel1_dB, SoundPressureLevel2_dB):
     # Method based on https://personalpages.manchester.ac.uk/staff/richard.baker/BasicAcoustics/index.html

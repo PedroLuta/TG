@@ -77,16 +77,20 @@ def WritePolar(PolarFileName, ReynoldsList, AlphaCurvesList, PolarCurvesList):
     with open(PolarFileName, 'w') as OutFile:
         ReynoldsOutput = ''
         for i in range(len(ReynoldsList)):
-            ReynoldsOutput += f'{round(ReynoldsList[i], 0)}\t'
+            if i == len(ReynoldsList) - 1:
+                ReynoldsOutput += f'{round(ReynoldsList[i], 0)}'
+            else:
+                ReynoldsOutput += f'{round(ReynoldsList[i], 0)}\t'
         OutFile.write(f"alpha\t{ReynoldsOutput}\n")
         for i in range(len(AlphaCurvesList[0])):
-            first = True
             Output = ''
             for j in range(len(AlphaCurvesList)):
-                if first:
+                if j == 0:
                     Output += f'{AlphaCurvesList[j][i]}\t'
-                    first = False
-                Output += f'{round(PolarCurvesList[j][i], 5)}\t'
+                if j == len(AlphaCurvesList) - 1:
+                    Output += f'{round(PolarCurvesList[j][i], 5)}'
+                else:
+                    Output += f'{round(PolarCurvesList[j][i], 5)}\t'
             OutFile.write(f'{Output}\n')
 
 ReynoldsList = [50000*i for i in range(2, 6)]
@@ -95,8 +99,8 @@ ReynoldsList.extend([1000000*i for i in range(2, 5)])
 
 AlphaCurvesList, ClCurvesList, CdCurvesList, OutReynoldsList = GeneratePolars(Airfoil = "clarky.dat", ReynoldsList = ReynoldsList, LowerAlpha = -10, UpperAlpha = 15, AlphaStep = 1)
 
-WritePolar("ClarkYAutoClPolar3.dat", OutReynoldsList, AlphaCurvesList, ClCurvesList)
-WritePolar("ClarkYAutoCdPolar3.dat", OutReynoldsList, AlphaCurvesList, CdCurvesList)
+WritePolar("ClarkYAutoClPolar4.dat", OutReynoldsList, AlphaCurvesList, ClCurvesList)
+WritePolar("ClarkYAutoCdPolar4.dat", OutReynoldsList, AlphaCurvesList, CdCurvesList)
 
 # for i in range(len(AlphaCurvesList)):
 #     plt.plot(AlphaCurvesList[i], CdCurvesList[i], label = OutReynoldsList[i])
