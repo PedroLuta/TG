@@ -1,0 +1,5 @@
+qprop.f/motor.f/tqcalc.f/gvcalc.f/cdfun.f
+    -> all comments deleted
+    -> code idented python-like
+qprop.f
+    -> edit variable names

@@ -58,12 +58,12 @@ class Individual:
 
 
 class NSGA2_v1:
-    def __init__(self, n_ind = 0, n_gen = 0, mut_rate = 0, t_size = 0, dp = 4): 
+    def __init__(self, n_ind = 0, n_gen = 0, mut_rate = 0, t_size = 0, DecimalPoints = 4): 
         self.n_ind = n_ind
         self.n_gen = n_gen
         self.mut_rate = mut_rate
         self.t_size = t_size
-        self.dp = dp
+        self.DecimalPoints = DecimalPoints
 
     def set_population_limits(self, limits): 
         y = {}
@@ -159,7 +159,7 @@ class NSGA2_v1:
         chrom = {}
         for key in self.limits:
             parameter = random.uniform(self.limits[key][0], self.limits[key][1])
-            param = round(parameter, self.dp)
+            param = round(parameter, self.DecimalPoints)
             chrom[key] = param
         return chrom
 
@@ -179,7 +179,7 @@ class NSGA2_v1:
             mut = random.random()
             if mut < self.mut_rate:
                 parameter = random.uniform(self.limits[key][0], self.limits[key][1])
-                param = round(parameter, self.dp)
+                param = round(parameter, self.DecimalPoints)
                 copy[key] = param
         return copy
 
@@ -207,14 +207,15 @@ class NSGA2_v1:
 
 
 class NSGA2_v2:
-    def __init__(self, n_ind = 0, mut_rate = 0, t_size = 0, dp = 4, convergence = 0, ma_len = 0, ma_tol = 0): 
+    def __init__(self, n_ind = 0, mut_rate = 0, t_size = 0, DecimalPoints = 4, convergence = 0, ma_len = 0, ma_tol = 0, MaxGenerations = infinite): 
         self.n_ind = n_ind
         self.mut_rate = mut_rate
         self.t_size = t_size
-        self.dp = dp
+        self.DecimalPoints = DecimalPoints
         self.convergence = convergence
         self.ma_len = ma_len
         self.ma_tol = ma_tol
+        self.MaxGenerations = MaxGenerations
 
     def set_population_limits(self, limits): 
         y = {}
@@ -229,7 +230,7 @@ class NSGA2_v2:
     def plot_population(self):
         for individual in self.current_pop:
             plt.plot(individual.get_ObjVal(0), individual.get_ObjVal(1), 'bo')
-        plt.plot(individual.get_ObjVal(0), individual.get_ObjVal(1), 'bo', label = "Individual")
+        # plt.plot(individual.get_ObjVal(0), individual.get_ObjVal(1), 'bo', label = "Individual")
 
     def run(self): 
         print("Geração 1")
@@ -240,11 +241,15 @@ class NSGA2_v2:
         area_vec = []
         area_vec.append(area_under_Front(self.current_pop))
         moving_average = sum(area_vec)
+        print(f"Moving Average = {moving_average}")
         stillness_count = 0
         generation = 2
         while stillness_count < self.convergence:
+            if generation > self.MaxGenerations:
+                break
             print(f"Geração {generation}")
             print(f"Moving Average = {moving_average}")
+            # self.plot_population() 
             self.create_offspring() 
             self.reinsert() 
             if len(area_vec) > self.ma_len:
@@ -256,9 +261,9 @@ class NSGA2_v2:
             else:
                 stillness_count = 0
             moving_average = new_moving_average
-            plt.plot(generation, moving_average, 'ro')
+            # plt.plot(generation, moving_average, 'ro')
             generation += 1
-        plt.show()
+        # plt.show()
 
     def create_first_gen(self): #CHECKED - OK1 - OK2
         individuals = 0 
@@ -333,7 +338,7 @@ class NSGA2_v2:
         chrom = {}
         for key in self.limits:
             parameter = random.uniform(self.limits[key][0], self.limits[key][1])
-            param = round(parameter, self.dp)
+            param = round(parameter, self.DecimalPoints)
             chrom[key] = param
         return chrom
 
@@ -353,7 +358,7 @@ class NSGA2_v2:
             mut = random.random()
             if mut < self.mut_rate:
                 parameter = random.uniform(self.limits[key][0], self.limits[key][1])
-                param = round(parameter, self.dp)
+                param = round(parameter, self.DecimalPoints)
                 copy[key] = param
         return copy
 
@@ -644,7 +649,7 @@ def calculate_hyper_volume(front):
     for i in range(n_objvals):
         obj_vector = []
         for ind in front:
-            obj_vector.append(ind.get_ObjVal(index = i))
+            obj_vector.append(abs(ind.get_ObjVal(index = i)))
         main_matrix.append(obj_vector)
     area = 0
     for i in range(lenght):

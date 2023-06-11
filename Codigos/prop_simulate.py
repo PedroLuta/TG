@@ -100,7 +100,6 @@ def BEMT_PrePolars(vi, radps, Blades, R, r_vector, Beta_dist, chord_dist, CLPola
     return dT_vector, dQ_vector
 
 def qprop_PrePolars(vi, radps, Blades, R, r_vector, Beta_dist, chord_dist, CLPolar = 'TestCLPolar.dat', CDPolar = 'TestCDPolar.dat', rho = 1.225, dvisc = 1.8/100000):
-    #CHORD DISTRIBUTION TAKEN AS INPUT
     kvisc = dvisc/rho
 
     dT_vector = []
@@ -122,6 +121,45 @@ def qprop_PrePolars(vi, radps, Blades, R, r_vector, Beta_dist, chord_dist, CLPol
 
         CLPolars = pd.read_table(CLPolar)
         CDPolars = pd.read_table(CDPolar)
+
+        alpha_c, Cl_c = GetInterpolatedPolarFromPolars(CLPolars, Re)
+        alpha_c, Cd_c = GetInterpolatedPolarFromPolars(CDPolars, Re)
+
+        WA, WT, Cl, Cd = induction_qprop_fixed_pitch(radps, rr, Blades, alpha_c, Cl_c, Cd_c, Beta, R, chord, vi)
+        W = (WA**2 + WT**2)**0.5
+        phi = math.atan(WA/WT)
+        dT = (rho*Blades*chord)*(W**2)*(Cl*math.cos(phi) - Cd*math.sin(phi))/2
+        dQ = (rho*Blades*chord*rr)*(W**2)*(Cl*math.sin(phi) + Cd*math.cos(phi))/2
+
+
+        dQ_vector.append(dQ)
+        dT_vector.append(dT)
+        Re_vector.append(Re)
+        WA_vector.append(WA)
+        WT_vector.append(WT)
+        Cl_vector.append(Cl)
+        Cd_vector.append(Cd)
+    return dT_vector, dQ_vector, r_vector, Re_vector, WA_vector, Cl_vector, Cd_vector
+
+def qprop_PrePolarsPreDataframe(vi, radps, Blades, R, r_vector, Beta_dist, chord_dist, CLPolars, CDPolars, rho = 1.225, dvisc = 1.8/100000):
+    kvisc = dvisc/rho
+
+    dT_vector = []
+    dQ_vector = []
+    Re_vector = []
+    WA_vector = []
+    WT_vector = []
+    Cl_vector = []
+    Cd_vector = []
+
+    for i in range(len(r_vector)):
+        rr = r_vector[i]
+        Beta = Beta_dist[i]
+        chord = chord_dist[i]
+
+        Vr = radps*rr
+        V = ((Vr**2)+(vi**2))**0.5
+        Re = ((V*chord)/kvisc) 
 
         alpha_c, Cl_c = GetInterpolatedPolarFromPolars(CLPolars, Re)
         alpha_c, Cd_c = GetInterpolatedPolarFromPolars(CDPolars, Re)
