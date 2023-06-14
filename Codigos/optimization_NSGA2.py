@@ -241,7 +241,7 @@ class NSGA2_v2:
         area_vec = []
         area_vec.append(area_under_Front(self.current_pop))
         moving_average = sum(area_vec)
-        print(f"Moving Average = {moving_average}")
+        # print(f"Moving Average = {moving_average}")
         stillness_count = 0
         generation = 2
         while stillness_count < self.convergence:
