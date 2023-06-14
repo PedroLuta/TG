@@ -248,19 +248,22 @@ class NSGA2_v2:
             if generation > self.MaxGenerations:
                 break
             print(f"Geração {generation}")
-            print(f"Moving Average = {moving_average}")
             # self.plot_population() 
             self.create_offspring() 
             self.reinsert() 
             if len(area_vec) > self.ma_len:
                 area_vec.pop(0)
-            area_vec.append(area_under_Front(self.current_pop))
+            AreaBelowPareto = area_under_Front(self.current_pop)
+            area_vec.append(AreaBelowPareto)
             new_moving_average = sum(area_vec)/len(area_vec)
             if abs(new_moving_average/moving_average - 1) < self.ma_tol:
                 stillness_count += 1
             else:
                 stillness_count = 0
             moving_average = new_moving_average
+            # print(f"Area below Pareto = {AreaBelowPareto}")
+            # print(f"Moving Average = {moving_average}")
+            print(f"The Pareto is in convergence state for {stillness_count} generations")
             # plt.plot(generation, moving_average, 'ro')
             generation += 1
         # plt.show()

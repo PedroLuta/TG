@@ -3,6 +3,39 @@ import numpy as np
 
 class OneThirdSpectrum:
     def __init__(self, Bands_Hz = [], SoundPressureLevels_dB = []):
+        # [min, max, center, preferred] SOURCE: https://apmr.matelys.com/Standards/OctaveBands.html
+        self.StandardOneThirdOctaveBands = [[   13.9,    17.5,    15.6,    16.0], \
+                                            [   17.5,    22.1,    19.7,    20.0], \
+                                            [   22.1,    27.8,    24.8,    25.0], \
+                                            [   27.8,    35.1,    31.3,    31.5], \
+                                            [   35.1,    44.2,    39.4,    40.0], \
+                                            [   44.2,    55.7,    49.6,    50.0], \
+                                            [   55.7,    70.2,    62.5,    63.0], \
+                                            [   70.2,    88.4,    78.7,    80.0], \
+                                            [   88.4,   111.4,    99.2,   100.0], \
+                                            [  111.4,   140.3,   125.0,   125.0], \
+                                            [  140.3,   176.8,   157.5,   160.0], \
+                                            [  176.8,   222.7,   198.4,   200.0], \
+                                            [  222.7,   280.6,   250.0,   250.0], \
+                                            [  280.6,   356.6,   315.0,   315.0], \
+                                            [  356.6,   445.4,   396.9,   400.0], \
+                                            [  445.4,   561.2,   500.0,   500.0], \
+                                            [  561.2,   707.1,   630.0,   630.0], \
+                                            [  707.1,   890.9,   793.7,   800.0], \
+                                            [  890.9,  1122.5,  1000.0,  1000.0], \
+                                            [ 1122.5,  1414.2,  1259.9,  1250.0], \
+                                            [ 1414.2,  1781.8,  1587.4,  1600.0], \
+                                            [ 1781.8,  2244.9,  2000.0,  2000.0], \
+                                            [ 2244.9,  2828.4,  2519.8,  2500.0], \
+                                            [ 2828.4,  3563.6,  3174.8,  3150.0], \
+                                            [ 3563.6,  4489.8,  4000.0,  4000.0], \
+                                            [ 4489.8,  5656.9,  5039.7,  5000.0], \
+                                            [ 5656.9,  7127.2,  6349.6,  6300.0], \
+                                            [ 7127.2,  8979.7,  8000.0,  8000.0], \
+                                            [ 8979.7, 11313.7, 10079.4, 10000.0], \
+                                            [11313.7, 14254.4, 12699.2, 12500.0], \
+                                            [14254.4, 17959.4, 16000.0, 16000.0], \
+                                            [17959.4, 22627.4, 20158.7, 20000.0]]
         self.CentralBands_Hz = [   16.0, \
                                    20.0, \
                                    25.0, \
@@ -44,12 +77,21 @@ class OneThirdSpectrum:
         for i in range(len(Bands_Hz)):
             if (Bands_Hz[i] in self.CentralBands_Hz):
                 index = self.CentralBands_Hz.index(Bands_Hz[i])
-                if (np.isnan(self.Spectrum_dB[index])):
-                    self.Spectrum_dB[index] = SoundPressureLevels_dB[i]
-                else:
-                    self.Spectrum_dB[index] = SumSoundPressureLevels(self.Spectrum_dB[index], SoundPressureLevels_dB[i])
             else:
-                print(f"Band '{Bands_Hz[i]}' not supported")
+                j = 0
+                while j < len(self.StandardOneThirdOctaveBands):
+                    # print(f'{self.StandardOneThirdOctaveBands[j][0]} {Bands_Hz[i]} {self.StandardOneThirdOctaveBands[j][1]}')
+                    if (Bands_Hz[i] > self.StandardOneThirdOctaveBands[j][0]) and (Bands_Hz[i] <= self.StandardOneThirdOctaveBands[j][1]):
+                        break
+                    # print(j)
+                    j += 1
+                CentralBand = self.StandardOneThirdOctaveBands[j][3]
+                index = self.CentralBands_Hz.index(CentralBand)
+            # print(index)
+            if (np.isnan(self.Spectrum_dB[index])):
+                self.Spectrum_dB[index] = SoundPressureLevels_dB[i]
+            else:
+                self.Spectrum_dB[index] = SumSoundPressureLevels(self.Spectrum_dB[index], SoundPressureLevels_dB[i])
 
     def PNL(self):
         SPLDistribution_dB = self.Spectrum_dB[5:29].copy()
@@ -248,7 +290,7 @@ def BroadbandNoise(TotalBladeArea_m2, AverageBladeCL_adim, TotalThrust_N, TipSpe
                                                      + (10*math.log10(TotalBladeArea_m2*((math.cos(math.radians(AngleNegativeThrustToObserverPositionVector_deg))**2) + 0.1)/(DistanceToObserver_m**2))) \
                                                      + LiftCoefficientFunction + 130
 
-    # [min, max, center, preferred]
+    # [min, max, center, preferred] SOURCE: https://apmr.matelys.com/Standards/OctaveBands.html
     StandardOneThirdOctaveBands = [ [   13.9,    17.5,    15.6,    16.0], \
                                     [   17.5,    22.1,    19.7,    20.0], \
                                     [   22.1,    27.8,    24.8,    25.0], \
@@ -262,7 +304,7 @@ def BroadbandNoise(TotalBladeArea_m2, AverageBladeCL_adim, TotalThrust_N, TipSpe
                                     [  140.3,   176.8,   157.5,   160.0], \
                                     [  176.8,   222.7,   198.4,   200.0], \
                                     [  222.7,   280.6,   250.0,   250.0], \
-                                    [  280.6,   353.6,   315.0,   315.0], \
+                                    [  280.6,   356.6,   315.0,   315.0], \
                                     [  356.6,   445.4,   396.9,   400.0], \
                                     [  445.4,   561.2,   500.0,   500.0], \
                                     [  561.2,   707.1,   630.0,   630.0], \
@@ -324,6 +366,7 @@ def RotationalNoiseSteadyUnsteadyLoading(NumberOfBlades, ForwardMach, BladeTipMa
             break
         HarmonicValuesUsed_1_s.append(HarmonicValue_1_s)
         HarmonicsUsed.append(Harmonic)
+    # print(HarmonicsUsed)
 
     Mach05Curves = [[0, 10, 20, 30, 40, 50, 60, 70, 80], [[(2.9893,148.04), (4.5824,145.097), (6.4132,142.43), (8.6354,139.917), (10.8338,138.035), (13.1468,136.569), (15.2288,135.626), (18.0942,134.497), (21.1283,133.522), (23.8398,132.639), (26.4204,132.034), (29.0164,131.398), (31.5509,130.84), (33.8779,130.42), (36.5199,129.876), (38.8393,129.41), (41.4966,128.913), (43.5855,128.585), (46.6728,128.026), (49.9135,127.573)],      \
                                                           [(3.0644,151.886), (4.4933,149.672), (6.0803,147.739), (8.0939,145.756), (9.973,144.079), (11.8821,142.829), (13.864,141.812), (15.8822,140.989), (18.0343,140.264), (20.1438,139.54), (22.485,138.778), (24.4236,138.2), (26.8011,137.646), (29.0381,137.227), (31.6105,136.696), (33.9573,136.289), (36.231,135.857), (38.5167,135.547), (41.54,135.065), (49.9167,133.784)],           \
@@ -363,8 +406,13 @@ def RotationalNoiseSteadyUnsteadyLoading(NumberOfBlades, ForwardMach, BladeTipMa
                                                          ]]
 
     EffectiveTipMach = (BladeTipMach + (ForwardMach*math.sin(math.radians(RotorAzimuth_deg))))/(1 - (ForwardMach*math.cos(math.radians(AngleRotorPlaneToObserverPositionVector_deg))))
+    # print(EffectiveTipMach)
     if EffectiveTipMach < 0.5:
-        print("Effective Mach out of bounds")
+        LowerMachCurves = Mach05Curves
+        UpperMachCurves = Mach05Curves
+        LowerMach = 0.5
+        UpperMach = 0.5
+        # print("Effective Mach out of bounds (< 0.5)")
     elif EffectiveTipMach < 0.6:
         LowerMachCurves = Mach05Curves
         UpperMachCurves = Mach06Curves
@@ -381,7 +429,11 @@ def RotationalNoiseSteadyUnsteadyLoading(NumberOfBlades, ForwardMach, BladeTipMa
         LowerMach = 0.7
         UpperMach = 0.9
     else:
-        print("Effective Mach out of bounds")
+        LowerMachCurves = Mach09Curves
+        UpperMachCurves = Mach09Curves
+        LowerMach = 0.9
+        UpperMach = 0.9
+        # print("Effective Mach out of bounds (> 0.9)")
 
     for i in range(len(LowerMachCurves[0]) - 1):
         if (AngleRotorPlaneToObserverPositionVector_deg >= LowerMachCurves[0][i]) and (AngleRotorPlaneToObserverPositionVector_deg < LowerMachCurves[0][i + 1]):
@@ -436,6 +488,7 @@ def RotationalNoiseSteadyUnsteadyLoading(NumberOfBlades, ForwardMach, BladeTipMa
         FinalValue = LinearInterpolate(LowerMach, UpperMach, LowerMachValue, UpperMachValue, EffectiveTipMach)
 
         DeltaSPL = FinalValue
+        # print(DeltaSPL)
         SoundPressureLevelAtOneThirdBand.append((20*math.log10(EffectiveRotorRadius_m/DistanceToObserver_m)) \
                                               + (20*math.log10(TotalThrust_N/(AirDensityAtSeaLevel_Kg_m3*(SpeedSoundSeaLevelISA_m_s**2)*(RotorRadius_m**2)))) \
                                               + DeltaSPL)
@@ -456,9 +509,6 @@ def LinearInterpolate(x0, x1, y0, y1, x):
         return (y0 + y1)/2
     return y0 + ((x - x0)*(y1 - y0)/(x1 - x0))
 
-# x, y = RotationalNoiseSteadyUnsteadyLoading(2, 0, 0.9, 47.2, 3.14, 1.05, .934, 485, 0, 0)
-# print(x[:4])
-# print(y[:4])
 
 def SumSoundPressureLevels(SoundPressureLevel1_dB, SoundPressureLevel2_dB):
     # Method based on https://personalpages.manchester.ac.uk/staff/richard.baker/BasicAcoustics/index.html
@@ -470,6 +520,15 @@ def SumSoundPressureLevels(SoundPressureLevel1_dB, SoundPressureLevel2_dB):
     SoundPressureLevelSum_dB = 10*math.log10(IntensitySum_W_m2/(10**(-12)))
 
     return(SoundPressureLevelSum_dB)
+
+# x, y = RotationalNoiseSteadyUnsteadyLoading(2, 0, 0.9, 47.2, 3.14, 1.05, .934, 485, 0, 0)
+# x, y = RotationalNoiseSteadyUnsteadyLoading(5, 0, 0.61, 3.5, 61.6, 9.45, 8.5, 69420, 5, 0)
+# (NumberOfBlades, ForwardMach, BladeTipMach, RotorSpeed_1_s, DistanceToObserver_m, RotorRadius_m, EffectiveRotorRadius_m, TotalThrust_N, AngleRotorPlaneToObserverPositionVector_deg, RotorAzimuth_deg)
+# print(x[:4])
+# print(y[:4])
+SoundBand = OneThirdSpectrum()
+SoundBand.SumToSpectrum([25.392469816131527, 50.784939632263054, 76.17740944839458, 101.56987926452611, 126.96234908065763, 152.35481889678917, 177.7472887129207, 203.13975852905222, 228.53222834518374, 253.92469816131526, 279.3171679774468, 304.70963779357834, 330.10210760970983, 355.4945774258414, 380.8870472419729, 406.27951705810443, 431.671986874236, 457.0644566903675, 482.45692650649903, 507.8493963226305, 533.241866138762, 558.6343359548936, 584.0268057710251, 609.4192755871567, 634.8117454032882, 660.2042152194197, 685.5966850355512, 710.9891548516828, 736.3816246678143, 761.7740944839458, 787.1665643000773], [25.392469816131527, 50.784939632263054, 76.17740944839458, 101.56987926452611, 126.96234908065763, 152.35481889678917, 177.7472887129207, 203.13975852905222, 228.53222834518374, 253.92469816131526, 279.3171679774468, 304.70963779357834, 330.10210760970983, 355.4945774258414, 380.8870472419729, 406.27951705810443, 431.671986874236, 457.0644566903675, 482.45692650649903, 507.8493963226305, 533.241866138762, 558.6343359548936, 584.0268057710251, 609.4192755871567, 634.8117454032882, 660.2042152194197, 685.5966850355512, 710.9891548516828, 736.3816246678143, 761.7740944839458, 787.1665643000773])
+print(SoundBand.Spectrum_dB)
 
 # def SumMultipleSoundPressureLevels(SoundPressureLevelVec_dB):
 #     # Method based on https://personalpages.manchester.ac.uk/staff/richard.baker/BasicAcoustics/index.html
