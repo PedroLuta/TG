@@ -180,9 +180,110 @@ def qprop_PrePolarsPreDataframe(vi, radps, Blades, R, r_vector, Beta_dist, chord
         Cd_vector.append(Cd)
     return dT_vector, dQ_vector, r_vector, Re_vector, WA_vector, Cl_vector, Cd_vector
 
+# def qprop_PrePolarsWithMach(vi, radps, Blades, R, r_vector, Beta_dist, chord_dist, MachsAvailable, CLPolar = 'TestCLPolar.dat', CDPolar = 'TestCDPolar.dat', rho = 1.225, dvisc = 1.8/100000):
+#     kvisc = dvisc/rho
+
+#     dT_vector = []
+#     dQ_vector = []
+#     Re_vector = []
+#     WA_vector = []
+#     WT_vector = []
+#     Cl_vector = []
+#     Cd_vector = []
+
+#     for i in range(len(r_vector)):
+#         rr = r_vector[i]
+#         Beta = Beta_dist[i]
+#         chord = chord_dist[i]
+
+#         Vr = radps*rr
+#         V = ((Vr**2)+(vi**2))**0.5
+#         Re = ((V*chord)/kvisc) 
+#         Mach = V/343
+
+#         for j in range(len(MachsAvailable) - 1):
+#             if Mach > MachsAvailable[j] and Mach < MachsAvailable[j + 1]:
+#                 LowerMach = MachsAvailable[j]
+#                 UpperMach = MachsAvailable[j + 1]
+#                 break
+#             LowerMach = MachsAvailable[j]
+#             UpperMach = MachsAvailable[j + 1]
+        
 
 
+#         CLPolars = pd.read_table(CLPolar)
+#         CDPolars = pd.read_table(CDPolar)
 
+#         alpha_c, Cl_c = GetInterpolatedPolarFromPolars(CLPolars, Re)
+#         alpha_c, Cd_c = GetInterpolatedPolarFromPolars(CDPolars, Re)
+
+#         WA, WT, Cl, Cd = induction_qprop_fixed_pitch(radps, rr, Blades, alpha_c, Cl_c, Cd_c, Beta, R, chord, vi)
+#         W = (WA**2 + WT**2)**0.5
+#         phi = math.atan(WA/WT)
+#         dT = (rho*Blades*chord)*(W**2)*(Cl*math.cos(phi) - Cd*math.sin(phi))/2
+#         dQ = (rho*Blades*chord*rr)*(W**2)*(Cl*math.sin(phi) + Cd*math.cos(phi))/2
+
+
+#         dQ_vector.append(dQ)
+#         dT_vector.append(dT)
+#         Re_vector.append(Re)
+#         WA_vector.append(WA)
+#         WT_vector.append(WT)
+#         Cl_vector.append(Cl)
+#         Cd_vector.append(Cd)
+#     return dT_vector, dQ_vector, r_vector, Re_vector, WA_vector, Cl_vector, Cd_vector
+
+def qprop_PrePolarsPreDataframeWithMach(vi, radps, Blades, R, r_vector, Beta_dist, chord_dist, MachsAvailable, MachCLPolars, MachCDPolars, rho = 1.225, dvisc = 1.8/100000):
+    kvisc = dvisc/rho
+
+    dT_vector = []
+    dQ_vector = []
+    Re_vector = []
+    WA_vector = []
+    WT_vector = []
+    Cl_vector = []
+    Cd_vector = []
+
+    for i in range(len(r_vector)):
+        rr = r_vector[i]
+        Beta = Beta_dist[i]
+        chord = chord_dist[i]
+
+        Vr = radps*rr
+        V = ((Vr**2)+(vi**2))**0.5
+        Re = ((V*chord)/kvisc) 
+        Mach = V/343
+
+        for j in range(len(MachsAvailable) - 1):
+            if Mach > MachsAvailable[j] and Mach < MachsAvailable[j + 1]:
+                LowerMachIndex = j
+                UpperMachIndex = j + 1
+                break
+            LowerMachIndex = j
+            UpperMachIndex = j + 1
+        LowerCLPolars = MachCLPolars[LowerMachIndex]
+        UpperCLPolars = MachCLPolars[UpperMachIndex]
+        LowerCDPolars = MachCDPolars[LowerMachIndex]
+        UpperCDPolars = MachCDPolars[UpperMachIndex]
+
+        alpha_c, Cl_c = GetInterpolatedPolarFromPolars(CLPolars, Re)
+        alpha_c, Cd_c = GetInterpolatedPolarFromPolars(CDPolars, Re)
+
+        WA, WT, Cl, Cd = induction_qprop_fixed_pitch(radps, rr, Blades, alpha_c, Cl_c, Cd_c, Beta, R, chord, vi)
+        W = (WA**2 + WT**2)**0.5
+        phi = math.atan(WA/WT)
+        dT = (rho*Blades*chord)*(W**2)*(Cl*math.cos(phi) - Cd*math.sin(phi))/2
+        dQ = (rho*Blades*chord*rr)*(W**2)*(Cl*math.sin(phi) + Cd*math.cos(phi))/2
+
+
+        dQ_vector.append(dQ)
+        dT_vector.append(dT)
+        Re_vector.append(Re)
+        WA_vector.append(WA)
+        WT_vector.append(WT)
+        Cl_vector.append(Cl)
+        Cd_vector.append(Cd)
+    return dT_vector, dQ_vector, r_vector, Re_vector, WA_vector, Cl_vector, Cd_vector
 
 
 #Induction methods
@@ -336,6 +437,24 @@ def InterpolateCurves(ValueCurve1, ValueCurve2, Curve1, Curve2, ValueWanted):
         Curve3.append(linear_interpolate(ValueCurve1, ValueCurve2, Curve1[i], Curve2[i], ValueWanted))
     return Curve3
 
+def GetInterpolatedDataFrameFromMachDataFrames(LowerPolarsDF, UpperPolarsDF, LowerMach, UpperMach, WantMach):
+    FinalPolarsDF = LowerPolarsDF
+    for i in range(len(LowerPolarsDF.columns) - 1):
+        key = LowerPolarsDF.columns[i + 1]
+        if len(LowerPolarsDF[key]) > len(UpperPolarsDF[key]):
+            Length = len(LowerPolarsDF[key])
+        else:
+            Length = len(UpperPolarsDF[key])
+        for j in range(Length):
+            if j >= len(UpperPolarsDF[key]) - 1:
+                FinalPolarsDF[key][j] = LowerPolarsDF[key][j]
+            elif j >= len(LowerPolarsDF[key]) - 1:
+                FinalPolarsDF[key][j] = UpperPolarsDF[key][j]
+            else:
+                FinalPolarsDF[key][j] = linear_interpolate(LowerMach, UpperMach, LowerPolarsDF[key][j], UpperPolarsDF[key][j], WantMach)
+    return FinalPolarsDF
+        
+
 def GetInterpolatedPolarFromPolars(PolarsDF, WantReynolds):
     if WantReynolds < int(PolarsDF.columns[1]):
         Polar = PolarsDF[PolarsDF.columns[1]].tolist()
@@ -400,7 +519,73 @@ def GeneratePolars(Airfoil, ReynoldsList, LowerAlpha, UpperAlpha, AlphaStep):
             j += 1
     return AlphaCurvesList, ClCurvesList, CdCurvesList, OutReynoldsList
 
+def GeneratePolarsWithMach(Airfoil, ReynoldsList, MachList, LowerAlpha, UpperAlpha, AlphaStep):
+    MachAlphaCurvesList = []
+    MachClCurvesList = []
+    MachCdCurvesList = []
+    MachOutReynoldsList = []
+    for Mach in MachList:
+        print(f"Simulating Mach {Mach}\n")
+        AlphaCurvesList = []
+        ClCurvesList = []
+        CdCurvesList = []
+        OutReynoldsList = []
+        for Reynolds in ReynoldsList:
+            print(f" Simulating Reynolds {Reynolds}")
+            a, cl, cd, cm = xfoil_interface.GetXfoilCurves(Reynolds, Mach, 9, LowerAlpha, UpperAlpha, AlphaStep, Airfoil)
+            if len(a) == 0:
+                continue
+            else:
+                AlphaCurvesList.append(a)
+                ClCurvesList.append(cl)
+                CdCurvesList.append(cd)
+                OutReynoldsList.append(Reynolds)
+    
+        MaxAlphaLower = -math.inf
+        MinAlphaUpper = math.inf
+        for AlphaCurve in AlphaCurvesList:
+            if AlphaCurve[0] > MaxAlphaLower:
+                MaxAlphaLower = AlphaCurve[0]
+            if AlphaCurve[-1] < MinAlphaUpper:
+                MinAlphaUpper = AlphaCurve[-1]
+    
+        for i in range(len(AlphaCurvesList)):
+            j = 0
+            while j < len(AlphaCurvesList[i]) - 1:
+                # print(j)
+                if abs(AlphaCurvesList[i][j] - AlphaCurvesList[i][j + 1]) > AlphaStep:
+                    ClCurvesList[i].insert(j + 1, linear_interpolate(AlphaCurvesList[i][j], AlphaCurvesList[i][j + 1], ClCurvesList[i][j], ClCurvesList[i][j + 1], AlphaCurvesList[i][j] + AlphaStep))
+                    CdCurvesList[i].insert(j + 1, linear_interpolate(AlphaCurvesList[i][j], AlphaCurvesList[i][j + 1], CdCurvesList[i][j], CdCurvesList[i][j + 1], AlphaCurvesList[i][j] + AlphaStep))
+                    AlphaCurvesList[i].insert(j + 1, AlphaCurvesList[i][j] + AlphaStep)
+                # if (AlphaCurvesList[i][j + 1] > MinAlphaUpper) or (AlphaCurvesList[i][j + 1] < MaxAlphaLower):
+                #     ClCurvesList[i].pop(j + 1)
+                #     CdCurvesList[i].pop(j + 1)
+                #     AlphaCurvesList[i].pop(j + 1)
+                #     if j > 0:
+                #         j -= 1
+                # if (AlphaCurvesList[i][j] > MinAlphaUpper) or (AlphaCurvesList[i][j] < MaxAlphaLower):
+                #     ClCurvesList[i].pop(j)
+                #     CdCurvesList[i].pop(j)
+                #     AlphaCurvesList[i].pop(j)
+                #     if j > 0:
+                #         j -= 1
+                j += 1
+            while (AlphaCurvesList[i][-1] > MinAlphaUpper):
+                ClCurvesList[i].pop(-1)
+                CdCurvesList[i].pop(-1)
+                AlphaCurvesList[i].pop(-1)
+            while (AlphaCurvesList[i][0] < MaxAlphaLower):
+                ClCurvesList[i].pop(0)
+                CdCurvesList[i].pop(0)
+                AlphaCurvesList[i].pop(0)
+        MachAlphaCurvesList.append(AlphaCurvesList)
+        MachClCurvesList.append(ClCurvesList)
+        MachCdCurvesList.append(CdCurvesList)
+        MachOutReynoldsList.append(OutReynoldsList)
+    return MachAlphaCurvesList, MachClCurvesList, MachCdCurvesList, MachOutReynoldsList
+
 def WritePolar(PolarFileName, ReynoldsList, AlphaCurvesList, PolarCurvesList):
+    print(f"Writing Polar {PolarFileName}")
     with open(PolarFileName, 'w') as OutFile:
         ReynoldsOutput = ''
         for i in range(len(ReynoldsList)):
@@ -415,6 +600,17 @@ def WritePolar(PolarFileName, ReynoldsList, AlphaCurvesList, PolarCurvesList):
                     first = False
                 Output += f'{round(PolarCurvesList[j][i], 5)}\t'
             OutFile.write(f'{Output}\n')
+
+def WritePolarsWithMach(PolarFileName, MachReynoldsList, MachAlphaCurvesList, MachPolarCurvesList, MachList):
+    for i in range(len(MachList)):
+        Mach = MachList[i]
+        ReynoldsList = MachReynoldsList[i]
+        AlphaCurvesList = MachAlphaCurvesList[i]
+        PolarCurvesList = MachPolarCurvesList[i]
+        PolarFileNameWithoutExtension = PolarFileName.split(".")[0]
+        PolarFileExtension = PolarFileName.split(".")[-1]
+        NewPolarFileName = f'{PolarFileNameWithoutExtension}__{Mach}__.{PolarFileExtension}'
+        WritePolar(NewPolarFileName, ReynoldsList, AlphaCurvesList, PolarCurvesList)
 
 def calculate_most_eff_alpha(a_list, cl_list, cd_list):
     a, cl, cd = 0, 0, 1
@@ -434,12 +630,21 @@ def calculate_most_eff_alpha(a_list, cl_list, cd_list):
 # x = np.trapz(dT_vector, [0.25*0.3, 0.5*0.3, 0.75*0.3, 0.99*0.3])
 # print(x)
 
+# MachList = [0, 0.15, 0.3, 0.45, 0.6]
 # ReynoldsList = [50000*i for i in range(2, 6)]
 # ReynoldsList.extend([250000*i for i in range(2, 5)])
 # ReynoldsList.extend([1000000*i for i in range(2, 5)])
 
-# AlphaCurvesList, ClCurvesList, CdCurvesList, OutReynoldsList = GeneratePolars(Airfoil = "clarky.dat", ReynoldsList = ReynoldsList, LowerAlpha = -10, UpperAlpha = 15, AlphaStep = 1)
+# MachAlphaCurvesList, MachClCurvesList, MachCdCurvesList, MachOutReynoldsList = GeneratePolarsWithMach(Airfoil = "clarky.dat", ReynoldsList = ReynoldsList, MachList = MachList, LowerAlpha = -25, UpperAlpha = 30, AlphaStep = 1)
 
-# WritePolar("ClarkYAutoClPolar3.dat", OutReynoldsList, AlphaCurvesList, ClCurvesList)
-# WritePolar("ClarkYAutoCdPolar3.dat", OutReynoldsList, AlphaCurvesList, CdCurvesList)
+# WritePolarsWithMach("ClarkYAutoClPolar.dat", MachOutReynoldsList, MachAlphaCurvesList, MachClCurvesList, MachList)
+# WritePolarsWithMach("ClarkYAutoCdPolar.dat", MachOutReynoldsList, MachAlphaCurvesList, MachCdCurvesList, MachList)
+
+Mach015DF = pd.read_table("ClarkYAutoClPolar__0.15__.dat")
+Mach03DF = pd.read_table("ClarkYAutoClPolar__0.3__.dat")
+
+Mach02DF = GetInterpolatedDataFrameFromMachDataFrames(Mach015DF, Mach03DF, 0.15, 0.3, 0.2)
+print(Mach015DF)
+print(Mach02DF)
+print(Mach03DF)
 
