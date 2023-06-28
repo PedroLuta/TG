@@ -6,19 +6,25 @@ import optimization_NSGA2
 import numpy as np
 import matplotlib.pyplot as plt
 import time
+import math
+import pandas as pd
 
 Diameter_m = 3;
 SpinnerCutoff = 0.2
 NumberOfBlades = 2
 ObjectiveThrust_N = 4000
 AxialVelocity_m_s = 0
-ClPolar = "ClarkYAutoClPolar4.dat"
-CdPolar = "ClarkYAutoCdPolar4.dat"
+ForwardVelocity_m_s = 0
+ClPolars = pd.read_table("ClarkYAutoClPolar4.dat")
+CdPolars = pd.read_table("ClarkYAutoCdPolar4.dat")
 NumberOfStations = 11
-Convergence = 0.1 #Newton
+Convergence = 0.001 #Newton
 
 DistanceToObserver_m = 150
 AngleToObserver_deg = 30    #Angle from Negative thrust to observer
+
+SoundSpeed_m_s = 343
+AirDensity_Kg_m3 = 1.225
 
 def Evaluation(Chromossome):
 
@@ -28,7 +34,6 @@ def Evaluation(Chromossome):
     Ctip_adim = Chromossome["Ctip"]
     Pitch_m = Chromossome["Pitch"]
     Colective_deg = Chromossome["Collective"]
-
 
     #c_R = (a*r**3 + b*r**2 + c*r + d)**0.5
     a = -(2*Cmax_adim**2*Smax_adim - Cmax_adim**2 + Croot_adim**2*Smax_adim**2 - 2*Croot_adim**2*Smax_adim + Croot_adim**2 - Ctip_adim**2*Smax_adim**2)/(Smax_adim**2*(Smax_adim - 1)**2)
@@ -41,33 +46,32 @@ def Evaluation(Chromossome):
     RadialStations_m = [r*Diameter_m/2 for r in RadialStations_adim]
 
     ChordDistribution_m = [((a*s**3 + b*s**2 + c*s + d)**0.5)*Diameter_m/2 for s in S]
-    # plt.plot(S, ChordDistribution_m)
-    # plt.plot(RadialStations_adim, ChordDistribution_m)
-    # plt.ylim([0, 1])
-    # plt.show()
 
     TwistDistribution_deg = prop_design.simple_pitch(RadialStations_m, Pitch_m)
     TwistDistributionCollective_deg = [twist + Colective_deg for twist in TwistDistribution_deg]
 
-    UpperOmega_rad_s = 250
+    
+    
+    UpperOmega_rad_s = 1000
     LowerOmega_rad_s = 10
 
-    dT_vector, dQ_vector, r_vector, Re_vector, WA_vector, Cl_vector, Cd_vector = prop_simulate.qprop_PrePolars(AxialVelocity_m_s, UpperOmega_rad_s, NumberOfBlades, Diameter_m/2, RadialStations_m, TwistDistributionCollective_deg, ChordDistribution_m, CLPolar = ClPolar, CDPolar = CdPolar)
+    dT_vector, dQ_vector, r_vector, Re_vector, WA_vector, Cl_vector, Cd_vector = prop_simulate.qprop_PrePolarsPreDataframe(AxialVelocity_m_s, UpperOmega_rad_s, NumberOfBlades, Diameter_m/2, RadialStations_m, TwistDistributionCollective_deg, ChordDistribution_m, CLPolars = ClPolars, CDPolars = CdPolars)
     UpperResidue = ObjectiveThrust_N - np.trapz(dT_vector, r_vector)
-    dT_vector, dQ_vector, r_vector, Re_vector, WA_vector, Cl_vector, Cd_vector = prop_simulate.qprop_PrePolars(AxialVelocity_m_s, LowerOmega_rad_s, NumberOfBlades, Diameter_m/2, RadialStations_m, TwistDistributionCollective_deg, ChordDistribution_m, CLPolar = ClPolar, CDPolar = CdPolar)
+    dT_vector, dQ_vector, r_vector, Re_vector, WA_vector, Cl_vector, Cd_vector = prop_simulate.qprop_PrePolarsPreDataframe(AxialVelocity_m_s, LowerOmega_rad_s, NumberOfBlades, Diameter_m/2, RadialStations_m, TwistDistributionCollective_deg, ChordDistribution_m, CLPolars = ClPolars, CDPolars = CdPolars)
     LowerResidue = ObjectiveThrust_N - np.trapz(dT_vector, r_vector)
 
     # CurrentOmega_rad_s = 200
     Converged = False
     for _ in range(500):
-        if abs(UpperOmega_rad_s - LowerOmega_rad_s) < Convergence:
+
+        MidOmega_rad_s = (UpperOmega_rad_s + LowerOmega_rad_s)/2
+        dT_vector, dQ_vector, r_vector, Re_vector, WA_vector, Cl_vector, Cd_vector = prop_simulate.qprop_PrePolarsPreDataframe(AxialVelocity_m_s, MidOmega_rad_s, NumberOfBlades, Diameter_m/2, RadialStations_m, TwistDistributionCollective_deg, ChordDistribution_m, CLPolars = ClPolars, CDPolars = CdPolars)
+        MidResidue = ObjectiveThrust_N - np.trapz(dT_vector, r_vector)
+
+        if abs(MidResidue) < Convergence:
             Converged = True
             # print("===================================================================================================")
             break
-
-        MidOmega_rad_s = (UpperOmega_rad_s + LowerOmega_rad_s)/2
-        dT_vector, dQ_vector, r_vector, Re_vector, WA_vector, Cl_vector, Cd_vector = prop_simulate.qprop_PrePolars(AxialVelocity_m_s, MidOmega_rad_s, NumberOfBlades, Diameter_m/2, RadialStations_m, TwistDistributionCollective_deg, ChordDistribution_m, CLPolar = ClPolar, CDPolar = CdPolar)
-        MidResidue = ObjectiveThrust_N - np.trapz(dT_vector, r_vector)
 
         if UpperResidue*MidResidue < 0:
             LowerResidue = MidResidue
@@ -80,24 +84,24 @@ def Evaluation(Chromossome):
             break
     
     if not Converged:
-        return [0.0001, 1]
+        return [10**10, 200]
     
     SoundBand = noise_calc.OneThirdSpectrum()
     BladeArea_m2 = np.trapz(ChordDistribution_m, RadialStations_m)
     AverageBladeCl = sum(Cl_vector)/len(Cl_vector)
     TotalThrust_N = np.trapz(dT_vector, r_vector)
     TotalTorque_Nm = np.trapz(dQ_vector, r_vector)
+    ThrustCoefficient = TotalThrust_N/(AirDensity_Kg_m3*((MidOmega_rad_s/(2*np.pi))**2)*(Diameter_m**4))
     TipSpeed_m_s = MidOmega_rad_s*Diameter_m/2
 
-    Bands_Hz, SPL_dB = noise_calc.BroadbandNoise(BladeArea_m2, AverageBladeCl, TotalThrust_N, TipSpeed_m_s, DistanceToObserver_m, AngleToObserver_deg)
-    SoundBand.SumToSpectrum(Bands_Hz, SPL_dB)
+    Bands1_Hz, SPL1_dB = noise_calc.BroadbandNoise(BladeArea_m2, AverageBladeCl, TotalThrust_N, TipSpeed_m_s, DistanceToObserver_m, AngleToObserver_deg)
+    Bands2_Hz, SPL2_dB = noise_calc.RotationalNoiseSteadyUnsteadyLoading(NumberOfBlades, ForwardVelocity_m_s/SoundSpeed_m_s, (MidOmega_rad_s*Diameter_m/2)/SoundSpeed_m_s, MidOmega_rad_s/(2*np.pi), DistanceToObserver_m, Diameter_m/2, noise_calc.CalculateRotorEffectiveRadius(ThrustCoefficient, Diameter_m/2), TotalThrust_N, 90 - AngleToObserver_deg, 0)
+    # print(Bands2_Hz)
+    # print(SPL2_dB)
+    SoundBand.SumToSpectrum(Bands1_Hz, SPL1_dB)
+    SoundBand.SumToSpectrum(Bands2_Hz, SPL2_dB)
 
-    return [TotalTorque_Nm*MidOmega_rad_s, SoundBand.AWeightedOASPL()]
-
-# StartTime = time.time()
-# Evaluation([0.1, 0.2, 0.5, 0.1, 1.5, 1])
-# EndTime = time.time()
-# print(f"Execution Time = {EndTime - StartTime} seconds")
+    return [TotalTorque_Nm*MidOmega_rad_s, SoundBand.PNLT()]
 
 def Validation(Chromossome):
     
@@ -122,13 +126,7 @@ def Validation(Chromossome):
         return False
     return True
 
-
-OptimizationObject = optimization_NSGA2.NSGA2_v2(n_ind = 20, mut_rate = 0.4, t_size = 2, DecimalPoints = 8, convergence = 50, ma_len = 3, ma_tol = 0.001)
+OptimizationObject = optimization_NSGA2.NSGA2_v2(n_ind = 20, mut_rate = 0.3, t_size = 5, DecimalPoints = 4, convergence = 15, ma_len = 1, ma_tol = 0.001)
 OptimizationObject.set_functions(Evaluation, Validation)
 OptimizationObject.set_population_limits({"Croot": [0.02, 0.3], "Cmax": [0.02, 0.4], "Smax": [0.0001, 0.9999], "Ctip": [0.02, 0.4], "Pitch": [0.1*Diameter_m, 2*Diameter_m], "Collective": [0, 30]})
 OptimizationObject.run()
-
-for individual in OptimizationObject.current_pop:
-    funcs = Evaluation(individual.get_chrom())
-    plt.plot(funcs[0], funcs[1], 'bo')
-plt.show()

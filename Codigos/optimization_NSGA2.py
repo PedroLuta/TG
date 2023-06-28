@@ -238,6 +238,19 @@ class NSGA2_v2:
         self.evaluate_population(self.current_pop)
         self.current_pop = assign_fronts(self.current_pop)
         self.current_pop = assign_crowding(self.current_pop)
+        #Plot works for 2 variables only
+        Objective1Vec = [Ind.get_ObjVal(0) for Ind in self.current_pop]
+        Objective2Vec = [Ind.get_ObjVal(1) for Ind in self.current_pop]
+        MinMaxPlot = [[min(Objective1Vec), max(Objective1Vec)], [min(Objective2Vec), max(Objective2Vec)]]
+
+        plt.ion()
+        AnimatedPlot = plt.plot(Objective1Vec, Objective2Vec, 'o')
+        # PlotLines = AnimatedPlot[0]
+        plt.xlim(MinMaxPlot[0])
+        plt.ylim(MinMaxPlot[1])
+        plt.draw()
+        plt.pause(1)
+
         area_vec = []
         area_vec.append(area_under_Front(self.current_pop))
         moving_average = sum(area_vec)
@@ -264,6 +277,23 @@ class NSGA2_v2:
             # print(f"Area below Pareto = {AreaBelowPareto}")
             # print(f"Moving Average = {moving_average}")
             print(f"The Pareto is in convergence state for {stillness_count} generations")
+            Objective1Vec = [Ind.get_ObjVal(0) for Ind in self.current_pop]
+            Objective2Vec = [Ind.get_ObjVal(1) for Ind in self.current_pop]
+            plt.plot(Objective1Vec, Objective2Vec, 'o')
+            # PlotLines.set_xdata(Objective1Vec)
+            # PlotLines.set_ydata(Objective1Vec)
+            if min(Objective1Vec) < MinMaxPlot[0][0]:
+                MinMaxPlot[0][0] = min(Objective1Vec)
+            if min(Objective2Vec) < MinMaxPlot[1][0]:
+                MinMaxPlot[1][0] = min(Objective2Vec)
+            if max(Objective1Vec) > MinMaxPlot[0][1]:
+                MinMaxPlot[0][1] = max(Objective1Vec)
+            if max(Objective2Vec) < MinMaxPlot[1][1]:
+                MinMaxPlot[1][1] = max(Objective2Vec)
+            plt.xlim(MinMaxPlot[0])
+            plt.ylim(MinMaxPlot[1])
+            plt.draw()
+            plt.pause(1)
             # plt.plot(generation, moving_average, 'ro')
             generation += 1
         # plt.show()
