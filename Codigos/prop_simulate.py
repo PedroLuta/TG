@@ -639,12 +639,12 @@ def calculate_most_eff_alpha(a_list, cl_list, cd_list):
 
 # WritePolarsWithMach("ClarkYAutoClPolar.dat", MachOutReynoldsList, MachAlphaCurvesList, MachClCurvesList, MachList)
 # WritePolarsWithMach("ClarkYAutoCdPolar.dat", MachOutReynoldsList, MachAlphaCurvesList, MachCdCurvesList, MachList)
-
-Mach015DF = pd.read_table("ClarkYAutoClPolar__0.15__.dat")
-Mach03DF = pd.read_table("ClarkYAutoClPolar__0.3__.dat")
-
-Mach02DF = GetInterpolatedDataFrameFromMachDataFrames(Mach015DF, Mach03DF, 0.15, 0.3, 0.2)
-print(Mach015DF)
-print(Mach02DF)
-print(Mach03DF)
+if __name__ == "__main__":
+    Mach015DF = pd.read_table("ClarkYAutoClPolar__0.15__.dat")
+    Mach03DF = pd.read_table("ClarkYAutoClPolar__0.3__.dat")
+    
+    Mach02DF = GetInterpolatedDataFrameFromMachDataFrames(Mach015DF, Mach03DF, 0.15, 0.3, 0.2)
+    print(Mach015DF)
+    print(Mach02DF)
+    print(Mach03DF)
 

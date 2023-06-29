@@ -288,7 +288,7 @@ class NSGA2_v2:
                 MinMaxPlot[1][0] = min(Objective2Vec)
             if max(Objective1Vec) > MinMaxPlot[0][1]:
                 MinMaxPlot[0][1] = max(Objective1Vec)
-            if max(Objective2Vec) < MinMaxPlot[1][1]:
+            if max(Objective2Vec) > MinMaxPlot[1][1]:
                 MinMaxPlot[1][1] = max(Objective2Vec)
             plt.xlim(MinMaxPlot[0])
             plt.ylim(MinMaxPlot[1])
