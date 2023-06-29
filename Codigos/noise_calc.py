@@ -1,5 +1,6 @@
 import math
 import numpy as np
+import matplotlib.pyplot as plt
 
 class OneThirdSpectrum:
     def __init__(self, Bands_Hz = [], SoundPressureLevels_dB = []):
@@ -277,6 +278,40 @@ class OneThirdSpectrum:
                 IntensitiesSum += 10**(self.Spectrum_dB[i]/10)
         return 10*math.log10(IntensitiesSum)
 
+    def plot(self):
+        WidthVec = []
+        CentralBandsVec_Hz = []
+        PreferedCentralBandsVec_Hz = []
+        for i in range(len(self.StandardOneThirdOctaveBands)):
+            CentralBand_Hz = self.StandardOneThirdOctaveBands[i][2]
+            PreferedCentralBand_Hz = self.StandardOneThirdOctaveBands[i][3]
+            Width = self.StandardOneThirdOctaveBands[i][1] - self.StandardOneThirdOctaveBands[i][0]
+            WidthVec.append(Width)
+            CentralBandsVec_Hz.append(CentralBand_Hz)
+            PreferedCentralBandsVec_Hz.append(PreferedCentralBand_Hz)
+        plt.bar(CentralBandsVec_Hz, height = self.Spectrum_dB, width = WidthVec)
+        plt.xscale("log")
+        # plt.xticks(PreferedCentralBandsVec_Hz)
+        plt.show()
+    
+    def plotAWeightedComparison(self):
+        WidthVec = []
+        CentralBandsVec_Hz = []
+        PreferedCentralBandsVec_Hz = []
+        for i in range(len(self.StandardOneThirdOctaveBands)):
+            CentralBand_Hz = self.StandardOneThirdOctaveBands[i][2]
+            PreferedCentralBand_Hz = self.StandardOneThirdOctaveBands[i][3]
+            Width = self.StandardOneThirdOctaveBands[i][1] - self.StandardOneThirdOctaveBands[i][0]
+            WidthVec.append(Width)
+            CentralBandsVec_Hz.append(CentralBand_Hz)
+            PreferedCentralBandsVec_Hz.append(PreferedCentralBand_Hz)
+        plt.bar(CentralBandsVec_Hz, height = self.Spectrum_dB, width = WidthVec)
+        plt.bar(CentralBandsVec_Hz, height = self.AWeigthed(), width = WidthVec)
+        plt.xscale("log")
+        # plt.xticks(PreferedCentralBandsVec_Hz)
+        plt.show()
+
+
 def BroadbandNoise(TotalBladeArea_m2, AverageBladeCL_adim, TotalThrust_N, TipSpeed_m_s, DistanceToObserver_m, AngleNegativeThrustToObserverPositionVector_deg):
     PeakFrequency = (-240*math.log10(TotalThrust_N)) + (2.448*TipSpeed_m_s) + 942
 
@@ -521,7 +556,7 @@ def SumSoundPressureLevels(SoundPressureLevel1_dB, SoundPressureLevel2_dB):
 
     return(SoundPressureLevelSum_dB)
 
-# x, y = RotationalNoiseSteadyUnsteadyLoading(2, 0, 0.9, 47.2, 3.14, 1.05, .934, 485, 0, 0)
+# x, y = RotationalNoiseSteadyUnsteadyLoading(2, 0, 0.9, 3.14, 47.2, 1.05, .934, 485, 0, 0)
 # x, y = RotationalNoiseSteadyUnsteadyLoading(5, 0, 0.61, 3.5, 61.6, 9.45, 8.5, 69420, 5, 0)
 # (NumberOfBlades, ForwardMach, BladeTipMach, RotorSpeed_1_s, DistanceToObserver_m, RotorRadius_m, EffectiveRotorRadius_m, TotalThrust_N, AngleRotorPlaneToObserverPositionVector_deg, RotorAzimuth_deg)
 # print(x[:4])
@@ -556,3 +591,13 @@ def SumSoundPressureLevels(SoundPressureLevel1_dB, SoundPressureLevel2_dB):
 # print(Spectre.PNLT())
 # print(Spectre.OASPL())
 # print(10*math.log10(1))
+
+if __name__ == "__main__":
+    Spectre = OneThirdSpectrum()
+    bands, spl = BroadbandNoise(18.6, 0.438, 69420, 208, 61.6, 85) #Example 1 main rotor on tm-80200
+    Spectre.SumToSpectrum(bands, spl)
+    bands, spl = RotationalNoiseSteadyUnsteadyLoading(2, 0, 0.9, 3.14, 47.2, 1.05, .934, 485, 0, 0)
+    Spectre.SumToSpectrum(bands, spl)
+    print(Spectre.CentralBands_Hz)
+    print(Spectre.Spectrum_dB)
+    Spectre.plotAWeightedComparison()
