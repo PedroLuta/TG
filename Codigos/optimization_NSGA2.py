@@ -7,13 +7,14 @@ import Auxiliary
 
 
 class Individual:
-    def __init__(self, chrom = {}, front = -1, crowd = 0, domcount = infinite, ObjVal = [], valid = True):
+    def __init__(self, chrom = {}, front = -1, crowd = 0, domcount = infinite, ObjVal = [], valid = True, Information = {}):
         self.chrom = chrom
         self.front = front
         self.crowd = crowd
         self.domcount = domcount
         self.ObjVal = ObjVal
         self.valid = valid
+        self.Information = Information
 
     def set_valid(self, boolean):
         self.valid = boolean
@@ -49,6 +50,11 @@ class Individual:
         if index == -1:
             return self.ObjVal
         return self.ObjVal[index]
+    
+    def SetInformation(self, Information):
+        self.Information = Information
+    def GetInformation(self):
+        return self.Information
 
     def set_ID(self, ID):
         self.ID = ID
@@ -244,10 +250,11 @@ class NSGA2_v2:
         MinMaxPlot = [[min(Objective1Vec), max(Objective1Vec)], [min(Objective2Vec), max(Objective2Vec)]]
 
         plt.ion()
-        AnimatedPlot = plt.plot(Objective1Vec, Objective2Vec, 'o')
+        plt.plot(Objective1Vec, Objective2Vec, 'o')
         # PlotLines = AnimatedPlot[0]
         plt.xlim(MinMaxPlot[0])
         plt.ylim(MinMaxPlot[1])
+        # print(self.current_pop[0].GetInformation())
         plt.draw()
         plt.pause(1)
 
@@ -280,6 +287,7 @@ class NSGA2_v2:
             Objective1Vec = [Ind.get_ObjVal(0) for Ind in self.current_pop]
             Objective2Vec = [Ind.get_ObjVal(1) for Ind in self.current_pop]
             plt.plot(Objective1Vec, Objective2Vec, 'o')
+            # print(self.current_pop[0].GetInformation())
             # PlotLines.set_xdata(Objective1Vec)
             # PlotLines.set_ydata(Objective1Vec)
             if min(Objective1Vec) < MinMaxPlot[0][0]:
@@ -364,8 +372,9 @@ class NSGA2_v2:
             if not valid:
                 individual.set_valid(False)
                 continue
-            obj_vals = self.evaluate(individual.get_chrom())
+            obj_vals, Information = self.evaluate(individual.get_chrom())
             individual.set_ObjVal(obj_vals)
+            individual.SetInformation(Information)
 
     def generate_chrom(self): #CHECKED - OK1 - OK2
         chrom = {}
