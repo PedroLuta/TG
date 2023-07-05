@@ -55,38 +55,23 @@ def GetXfoilCurves(Reynolds, Mach, Ncrit, InitialAlpha_deg, FinalAlpha_deg, Alph
     return AlphaList, ClList, CdList, CmList
 
 if (__name__ == '__main__'):
-    AirfoilsFolder = "NcritRuns"
-    AirfoilFiles = [file for file in os.listdir(AirfoilsFolder) if os.path.isfile(os.path.join(AirfoilsFolder,file))]
-    ResultsFolder = f'{AirfoilsFolder}\\Results2'
-    for AirfoilFile in AirfoilFiles:
-        AirfoilName = AirfoilFile.split('.')[0]
-        AirfoilPath = f'{AirfoilsFolder}\\{AirfoilFile}'
-        AlphaInicial = -25
-        AlphaFinal = 30
-        AlphaStep = 1
-        if AirfoilName == "NACA0012":
-            OriginalMach = 0.17
-            OriginalReynolds = 3*(10**6)
-        if AirfoilName == "NACA2415":
-            OriginalMach = 0.17
-            OriginalReynolds = 6*(10**6)
-            continue
-        for Mach in [OriginalMach, 0.3, 0.45, 0.6]:
-            for Ncrit in [0.1, 0.5, 1, 2, 3, 4]:
-                Reynolds = OriginalReynolds
-                AlphaList, ClList, CdList, CmList = GetXfoilCurves(Reynolds, Mach, Ncrit, AlphaInicial, AlphaFinal, AlphaStep, AirfoilPath)
-                with open(f'{ResultsFolder}\\{AirfoilName}_Reynolds{round(Reynolds, 4)}_Mach{Mach}_Ncrit{Ncrit}.txt', 'w') as Output:
-                    Output.write(f'Alpha,Cl,Cd,Cm\n')
-                    for i in range(len(AlphaList)):
-                        Output.write(f'{AlphaList[i]},{ClList[i]},{CdList[i]},{CmList[i]}\n')
-                if Mach != OriginalMach:
-                    Reynolds = OriginalReynolds*Mach/OriginalMach
-                    AlphaList, ClList, CdList, CmList = GetXfoilCurves(Reynolds, Mach, Ncrit, AlphaInicial, AlphaFinal, AlphaStep, AirfoilPath)
-                    with open(f'{ResultsFolder}\\{AirfoilName}_Reynolds{round(Reynolds, 4)}_Mach{Mach}_Ncrit{Ncrit}.txt', 'w') as Output:
-                        Output.write(f'Alpha,Cl,Cd,Cm\n')
-                        for i in range(len(AlphaList)):
-                            Output.write(f'{AlphaList[i]},{ClList[i]},{CdList[i]},{CmList[i]}\n')
-                    
+    Airfoil = "clarky.dat"
+    ResultsFolder = f'Results'
+    AlphaInicial = -25
+    AlphaFinal = 30
+    AlphaStep = 1
+    for Mach in [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6]:
+        for Reynolds in [100000, 150000, 200000, 250000, 500000, 750000, 1000000, 2000000, 3000000, 4000000]:
+            AlphaList, ClList, CdList, CmList = GetXfoilCurves(Reynolds, Mach, 9, AlphaInicial, AlphaFinal, AlphaStep, Airfoil)
+            with open(f'{ResultsFolder}\\CL{Airfoil}_Reynolds{round(Reynolds, 0)}_Mach{Mach}.txt', 'w') as Output:
+                Output.write(f'Alpha,Cl\n')
+                for i in range(len(AlphaList)):
+                    Output.write(f'{AlphaList[i]},{ClList[i]}\n')
+            with open(f'{ResultsFolder}\\CD{Airfoil}_Reynolds{round(Reynolds, 0)}_Mach{Mach}.txt', 'w') as Output:
+                Output.write(f'Alpha,Cd\n')
+                for i in range(len(AlphaList)):
+                    Output.write(f'{AlphaList[i]},{CdList[i]}\n')
+                
 
 
 # if (__name__ == '__main__'):
