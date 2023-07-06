@@ -15,8 +15,10 @@ NumberOfBlades = 2
 ObjectiveThrust_N = 4000
 AxialVelocity_m_s = 0
 ForwardVelocity_m_s = 0
-ClPolars = pd.read_table("ClarkYAutoClPolar4.dat")
-CdPolars = pd.read_table("ClarkYAutoCdPolar4.dat")
+# ClPolars = pd.read_table("ClarkYAutoClPolar4.dat")
+# CdPolars = pd.read_table("ClarkYAutoCdPolar4.dat")
+ClMachPolars = pd.read_csv("ClarkYClPolar.dat", header = 1)
+CdMachPolars = pd.read_csv("ClarkYCdPolar.dat", header = 1)
 NumberOfStations = 11
 Convergence = 0.001 #Newton
 
@@ -55,9 +57,9 @@ def Evaluation(Chromossome):
     UpperOmega_rad_s = 1000
     LowerOmega_rad_s = 10
 
-    dT_vector, dQ_vector, r_vector, Re_vector, WA_vector, Cl_vector, Cd_vector = prop_simulate.qprop_PrePolarsPreDataframe(AxialVelocity_m_s, UpperOmega_rad_s, NumberOfBlades, Diameter_m/2, RadialStations_m, TwistDistributionCollective_deg, ChordDistribution_m, CLPolars = ClPolars, CDPolars = CdPolars)
+    dT_vector, dQ_vector, r_vector, Re_vector, WA_vector, Cl_vector, Cd_vector = prop_simulate.qprop_PrePolarsPreDataframeWithMach(AxialVelocity_m_s, UpperOmega_rad_s, NumberOfBlades, Diameter_m/2, RadialStations_m, TwistDistributionCollective_deg, ChordDistribution_m, ClMachPolars, CdMachPolars)
     UpperResidue = ObjectiveThrust_N - np.trapz(dT_vector, r_vector)
-    dT_vector, dQ_vector, r_vector, Re_vector, WA_vector, Cl_vector, Cd_vector = prop_simulate.qprop_PrePolarsPreDataframe(AxialVelocity_m_s, LowerOmega_rad_s, NumberOfBlades, Diameter_m/2, RadialStations_m, TwistDistributionCollective_deg, ChordDistribution_m, CLPolars = ClPolars, CDPolars = CdPolars)
+    dT_vector, dQ_vector, r_vector, Re_vector, WA_vector, Cl_vector, Cd_vector = prop_simulate.qprop_PrePolarsPreDataframeWithMach(AxialVelocity_m_s, LowerOmega_rad_s, NumberOfBlades, Diameter_m/2, RadialStations_m, TwistDistributionCollective_deg, ChordDistribution_m, ClMachPolars, CdMachPolars)
     LowerResidue = ObjectiveThrust_N - np.trapz(dT_vector, r_vector)
 
     # CurrentOmega_rad_s = 200
@@ -65,7 +67,8 @@ def Evaluation(Chromossome):
     for _ in range(500):
 
         MidOmega_rad_s = (UpperOmega_rad_s + LowerOmega_rad_s)/2
-        dT_vector, dQ_vector, r_vector, Re_vector, WA_vector, Cl_vector, Cd_vector = prop_simulate.qprop_PrePolarsPreDataframe(AxialVelocity_m_s, MidOmega_rad_s, NumberOfBlades, Diameter_m/2, RadialStations_m, TwistDistributionCollective_deg, ChordDistribution_m, CLPolars = ClPolars, CDPolars = CdPolars)
+        # print(MidOmega_rad_s)
+        dT_vector, dQ_vector, r_vector, Re_vector, WA_vector, Cl_vector, Cd_vector = prop_simulate.qprop_PrePolarsPreDataframeWithMach(AxialVelocity_m_s, MidOmega_rad_s, NumberOfBlades, Diameter_m/2, RadialStations_m, TwistDistributionCollective_deg, ChordDistribution_m, ClMachPolars, CdMachPolars)
         MidResidue = ObjectiveThrust_N - np.trapz(dT_vector, r_vector)
 
         if abs(MidResidue) < Convergence:
@@ -100,6 +103,7 @@ def Evaluation(Chromossome):
     # print(SPL2_dB)
     SoundBand.SumToSpectrum(Bands1_Hz, SPL1_dB)
     SoundBand.SumToSpectrum(Bands2_Hz, SPL2_dB)
+    # print("Individual done!")
 
     return [TotalTorque_Nm*MidOmega_rad_s, SoundBand.PNLT()], {"TipSpeed_m_s": TipSpeed_m_s}
 
@@ -119,6 +123,7 @@ def Validation(Chromossome):
     d = Croot_adim**2
 
     DerivativeZero = c/(2*(d**0.5))
+    # print("Individual done validating!")
     if DerivativeZero < 0:
         return False
     DerivativeOne = (3*a + 2*b + c)/(2*((a + b + c + d)**0.5))
@@ -126,7 +131,7 @@ def Validation(Chromossome):
         return False
     return True
 
-OptimizationObject = optimization_NSGA2.NSGA2_v2(n_ind = 20, mut_rate = 0.3, t_size = 5, DecimalPoints = 4, convergence = 15, ma_len = 1, ma_tol = 0.001)
+OptimizationObject = optimization_NSGA2.NSGA2_v2(n_ind = 50, mut_rate = 0.3, t_size = 5, DecimalPoints = 4, convergence = 15, ma_len = 1, ma_tol = 0.001)
 OptimizationObject.set_functions(Evaluation, Validation)
 OptimizationObject.set_population_limits({"Croot": [0.02, 0.3], "Cmax": [0.02, 0.4], "Smax": [0.0001, 0.9999], "Ctip": [0.02, 0.4], "Pitch": [0.1*Diameter_m, 2*Diameter_m], "Collective": [0, 30]})
 OptimizationObject.run()

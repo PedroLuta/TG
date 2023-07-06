@@ -3,6 +3,7 @@ import math
 import numpy as np
 import xfoil_interface
 import pandas as pd
+pd.options.mode.chained_assignment = None
 
 euler = np.e
 pi = np.pi
@@ -233,7 +234,24 @@ def qprop_PrePolarsPreDataframe(vi, radps, Blades, R, r_vector, Beta_dist, chord
 #         Cd_vector.append(Cd)
 #     return dT_vector, dQ_vector, r_vector, Re_vector, WA_vector, Cl_vector, Cd_vector
 
-def qprop_PrePolarsPreDataframeWithMach(vi, radps, Blades, R, r_vector, Beta_dist, chord_dist, MachsAvailable, MachCLPolars, MachCDPolars, rho = 1.225, dvisc = 1.8/100000):
+def qprop_PrePolarsPreDataframeWithMach(vi, radps, Blades, R, r_vector, Beta_dist, chord_dist, MachCLPolars, MachCDPolars, rho = 1.225, dvisc = 1.8/100000):
+    MachsAvailable = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
+    Headers = MachCLPolars.columns
+    Mach0ClPolar = MachCLPolars.head(31)
+    Mach01ClPolar = MachCLPolars.iloc[34:65].reset_index()[Headers]
+    Mach02ClPolar = MachCLPolars.iloc[68:99].reset_index()[Headers]
+    Mach03ClPolar = MachCLPolars.iloc[102:133].reset_index()[Headers]
+    Mach04ClPolar = MachCLPolars.iloc[136:167].reset_index()[Headers]
+    Mach05ClPolar = MachCLPolars.iloc[170:201].reset_index()[Headers]
+    Mach06ClPolar = MachCLPolars.iloc[204:235].reset_index()[Headers]
+    Mach0CdPolar = MachCDPolars.head(31)
+    Mach01CdPolar = MachCDPolars.iloc[34:65].reset_index()[Headers]
+    Mach02CdPolar = MachCDPolars.iloc[68:99].reset_index()[Headers]
+    Mach03CdPolar = MachCDPolars.iloc[102:133].reset_index()[Headers]
+    Mach04CdPolar = MachCDPolars.iloc[136:167].reset_index()[Headers]
+    Mach05CdPolar = MachCDPolars.iloc[170:201].reset_index()[Headers]
+    Mach06CdPolar = MachCDPolars.iloc[204:235].reset_index()[Headers]
+    
     kvisc = dvisc/rho
 
     dT_vector = []
@@ -254,20 +272,80 @@ def qprop_PrePolarsPreDataframeWithMach(vi, radps, Blades, R, r_vector, Beta_dis
         Re = ((V*chord)/kvisc) 
         Mach = V/343
 
-        for j in range(len(MachsAvailable) - 1):
-            if Mach > MachsAvailable[j] and Mach < MachsAvailable[j + 1]:
-                LowerMachIndex = j
-                UpperMachIndex = j + 1
-                break
-            LowerMachIndex = j
-            UpperMachIndex = j + 1
-        LowerCLPolars = MachCLPolars[LowerMachIndex]
-        UpperCLPolars = MachCLPolars[UpperMachIndex]
-        LowerCDPolars = MachCDPolars[LowerMachIndex]
-        UpperCDPolars = MachCDPolars[UpperMachIndex]
+        if Mach < 0.1:
+            LowerCLPolars = Mach0ClPolar
+            UpperCLPolars = Mach01ClPolar
+            LowerCDPolars = Mach0CdPolar
+            UpperCDPolars = Mach01CdPolar
+            LowerMach = 0
+            UpperMach = 0.1
+        elif Mach < 0.2:
+            LowerCLPolars = Mach01ClPolar
+            UpperCLPolars = Mach02ClPolar
+            LowerCDPolars = Mach01CdPolar
+            UpperCDPolars = Mach02CdPolar
+            LowerMach = 0.1
+            UpperMach = 0.2
+        elif Mach < 0.3:
+            LowerCLPolars = Mach02ClPolar
+            UpperCLPolars = Mach03ClPolar
+            LowerCDPolars = Mach02CdPolar
+            UpperCDPolars = Mach03CdPolar
+            LowerMach = 0.2
+            UpperMach = 0.3
+        elif Mach < 0.4:
+            LowerCLPolars = Mach03ClPolar
+            UpperCLPolars = Mach04ClPolar
+            LowerCDPolars = Mach03CdPolar
+            UpperCDPolars = Mach04CdPolar
+            LowerMach = 0.3
+            UpperMach = 0.4
+        elif Mach < 0.5:
+            LowerCLPolars = Mach04ClPolar
+            UpperCLPolars = Mach05ClPolar
+            LowerCDPolars = Mach04CdPolar
+            UpperCDPolars = Mach05CdPolar
+            LowerMach = 0.4
+            UpperMach = 0.5
+        elif Mach < 0.6:
+            LowerCLPolars = Mach05ClPolar
+            UpperCLPolars = Mach06ClPolar
+            LowerCDPolars = Mach05CdPolar
+            UpperCDPolars = Mach06CdPolar
+            LowerMach = 0.5
+            UpperMach = 0.6
+        else:
+            LowerCLPolars = Mach06ClPolar
+            UpperCLPolars = Mach06ClPolar
+            LowerCDPolars = Mach06CdPolar
+            UpperCDPolars = Mach06CdPolar
+            LowerMach = 0.6
+            UpperMach = 0.6
+        
+        AlphaUpper, ClUpper = GetInterpolatedPolarFromPolars(UpperCLPolars, Re)
+        AlphaUpper, CdUpper = GetInterpolatedPolarFromPolars(UpperCDPolars, Re)
+        AlphaUpper = [float(Placeholder) for Placeholder in list(AlphaUpper)]
+        ClUpper = [float(Placeholder) for Placeholder in list(ClUpper)]
+        CdUpper = [float(Placeholder) for Placeholder in list(CdUpper)]
 
-        alpha_c, Cl_c = GetInterpolatedPolarFromPolars(CLPolars, Re)
-        alpha_c, Cd_c = GetInterpolatedPolarFromPolars(CDPolars, Re)
+        AlphaLower, ClLower = GetInterpolatedPolarFromPolars(LowerCLPolars, Re)
+        AlphaLower, CdLower = GetInterpolatedPolarFromPolars(LowerCDPolars, Re)
+        AlphaLower = [float(Placeholder) for Placeholder in list(AlphaLower)]
+        ClLower = [float(Placeholder) for Placeholder in list(ClLower)]
+        CdLower = [float(Placeholder) for Placeholder in list(CdLower)]
+
+        Cl_c = InterpolateCurves(LowerMach, UpperMach, ClLower, ClUpper, Mach)
+        Cd_c = InterpolateCurves(LowerMach, UpperMach, CdLower, CdUpper, Mach)
+        alpha_c = AlphaLower
+        
+        # CLPolars = GetInterpolatedDFFromMachDFs(LowerCLPolars, UpperCLPolars, LowerMach, UpperMach, Mach)
+        # CDPolars = GetInterpolatedDFFromMachDFs(LowerCDPolars, UpperCDPolars, LowerMach, UpperMach, Mach)
+
+        # alpha_c, Cl_c = GetInterpolatedPolarFromPolars(CLPolars, Re)
+        # alpha_c, Cd_c = GetInterpolatedPolarFromPolars(CDPolars, Re)
+        # alpha_c = [float(Placeholder) for Placeholder in list(alpha_c)]
+        # Cl_c = [float(Placeholder) for Placeholder in list(Cl_c)]
+        # Cd_c = [float(Placeholder) for Placeholder in list(Cd_c)]
 
         WA, WT, Cl, Cd = induction_qprop_fixed_pitch(radps, rr, Blades, alpha_c, Cl_c, Cd_c, Beta, R, chord, vi)
         W = (WA**2 + WT**2)**0.5
@@ -388,8 +466,11 @@ def calculate_residual_fixed_pitch(UA, UT, WZ, Beta, PSI, CHORD, a_list, CL_list
     else:
         TSR = WT/WA * RAD/rr
         FARG     = 0.5*BLDS*(1.0-rr/RAD)*TSR
-        FARG = min(FARG, 20.0 )   
-        FEXP = euler**(-FARG) 
+        FARG = min(FARG, 20.0 )
+        try:   
+            FEXP = euler**(-FARG)
+        except:
+            FEXP = 1.1 
         if FEXP > 1 or FEXP < -1:
             F = 1
         else: 
@@ -402,8 +483,6 @@ def calculate_residual_fixed_pitch(UA, UT, WZ, Beta, PSI, CHORD, a_list, CL_list
     W = (WA**2 + WT**2)**0.5
     RES     = GAM     - 0.5*CHORD* CL*W
     return RES, WA, WT, CL, CD
-
-
 
 #Auxiliary
 def find_alpha_interval_return_CL_CD(a_list, cl_list, CD_list, alpha):
@@ -437,24 +516,14 @@ def InterpolateCurves(ValueCurve1, ValueCurve2, Curve1, Curve2, ValueWanted):
         Curve3.append(linear_interpolate(ValueCurve1, ValueCurve2, Curve1[i], Curve2[i], ValueWanted))
     return Curve3
 
-def GetInterpolatedDataFrameFromMachDataFrames(LowerPolarsDF, UpperPolarsDF, LowerMach, UpperMach, WantMach):
-    FinalPolarsDF = LowerPolarsDF
+def GetInterpolatedDFFromMachDFs(LowerPolarsDF, UpperPolarsDF, LowerMach, UpperMach, WantMach):
+    FinalPolarsDF = LowerPolarsDF.copy()
     for i in range(len(LowerPolarsDF.columns) - 1):
         key = LowerPolarsDF.columns[i + 1]
-        if len(LowerPolarsDF[key]) > len(UpperPolarsDF[key]):
-            Length = len(LowerPolarsDF[key])
-        else:
-            Length = len(UpperPolarsDF[key])
-        for j in range(Length):
-            if j >= len(UpperPolarsDF[key]) - 1:
-                FinalPolarsDF[key][j] = LowerPolarsDF[key][j]
-            elif j >= len(LowerPolarsDF[key]) - 1:
-                FinalPolarsDF[key][j] = UpperPolarsDF[key][j]
-            else:
-                FinalPolarsDF[key][j] = linear_interpolate(LowerMach, UpperMach, LowerPolarsDF[key][j], UpperPolarsDF[key][j], WantMach)
+        for j in range(len(LowerPolarsDF[key])):
+            FinalPolarsDF[key][j] = linear_interpolate(LowerMach, UpperMach, LowerPolarsDF[key][j], UpperPolarsDF[key][j], WantMach)
     return FinalPolarsDF
         
-
 def GetInterpolatedPolarFromPolars(PolarsDF, WantReynolds):
     if WantReynolds < int(PolarsDF.columns[1]):
         Polar = PolarsDF[PolarsDF.columns[1]].tolist()
@@ -640,11 +709,34 @@ def calculate_most_eff_alpha(a_list, cl_list, cd_list):
 # WritePolarsWithMach("ClarkYAutoClPolar.dat", MachOutReynoldsList, MachAlphaCurvesList, MachClCurvesList, MachList)
 # WritePolarsWithMach("ClarkYAutoCdPolar.dat", MachOutReynoldsList, MachAlphaCurvesList, MachCdCurvesList, MachList)
 if __name__ == "__main__":
-    Mach015DF = pd.read_table("ClarkYAutoClPolar__0.15__.dat")
-    Mach03DF = pd.read_table("ClarkYAutoClPolar__0.3__.dat")
+    # ClPolar = pd.read_csv("ClarkYClPolar.dat", header = 1)
+    # Mach0ClPolar = ClPolar.head(31)
+    # Headers = Mach0ClPolar.columns
+    # Mach01ClPolar = ClPolar.iloc[34:65].reset_index()[Headers]
+    # Mach02ClPolar = ClPolar.iloc[68:99].reset_index()[Headers]
+    # Mach03ClPolar = ClPolar.iloc[102:133].reset_index()[Headers]
+    # Mach04ClPolar = ClPolar.iloc[136:167].reset_index()[Headers]
+    # Mach05ClPolar = ClPolar.iloc[170:201].reset_index()[Headers]
+    # Mach06ClPolar = ClPolar.iloc[204:235].reset_index()[Headers]
     
-    Mach02DF = GetInterpolatedDataFrameFromMachDataFrames(Mach015DF, Mach03DF, 0.15, 0.3, 0.2)
-    print(Mach015DF)
-    print(Mach02DF)
-    print(Mach03DF)
+    # # print(Mach01ClPolar)
+
+    # Mach005ClPolar = GetInterpolatedDFFromMachDFs(Mach0ClPolar, Mach01ClPolar, 0, 0.1, 0.05)
+    # print(Mach0ClPolar)
+    # print(Mach01ClPolar)
+    # print(Mach02ClPolar)
+    # print(Mach03ClPolar)
+    # print(Mach04ClPolar)
+    # print(Mach05ClPolar)
+    # print(Mach06ClPolar)
+    ClMachPolars = pd.read_csv("ClarkYClPolar.dat", header = 1)
+    CdMachPolars = pd.read_csv("ClarkYCdPolar.dat", header = 1)
+    dT_vector, dQ_vector, r_vector, Re_vector, WA_vector, Cl_vector, Cd_vector = qprop_PrePolarsPreDataframeWithMach(0.00001, 200, 2, 0.3, [0.25, 0.5, 0.75, 0.99], [30, 20, 10, 0], [0.3*0.1, 0.3*0.2, 0.3*0.2, 0.3*0.1], ClMachPolars, CdMachPolars)
+    print(np.trapz(dT_vector, [0.25, 0.5, 0.75, 0.99]))
+    print(np.trapz(dQ_vector, [0.25, 0.5, 0.75, 0.99]))
+    ClPolars = pd.read_table("ClarkYAutoClPolar4.dat")
+    CdPolars = pd.read_table("ClarkYAutoCdPolar4.dat")
+    dT_vector, dQ_vector, r_vector, Re_vector, WA_vector, Cl_vector, Cd_vector = qprop_PrePolarsPreDataframe(0.00001, 200, 2, 0.3, [0.25, 0.5, 0.75, 0.99], [30, 20, 10, 0], [0.3*0.1, 0.3*0.2, 0.3*0.2, 0.3*0.1], ClPolars, CdPolars)
+    print(np.trapz(dT_vector, [0.25, 0.5, 0.75, 0.99]))
+    print(np.trapz(dQ_vector, [0.25, 0.5, 0.75, 0.99]))
 
