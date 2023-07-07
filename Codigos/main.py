@@ -105,7 +105,7 @@ def Evaluation(Chromossome):
     SoundBand.SumToSpectrum(Bands2_Hz, SPL2_dB)
     # print("Individual done!")
 
-    return [TotalTorque_Nm*MidOmega_rad_s, SoundBand.PNLT()], {"TipSpeed_m_s": TipSpeed_m_s}
+    return [TotalTorque_Nm*MidOmega_rad_s, SoundBand.PNLT()], {"TipSpeed_m_s": TipSpeed_m_s, "BladeArea_m2": BladeArea_m2, "AverageBladeCl": AverageBladeCl, "ThrustCoefficient": ThrustCoefficient, "RPM": MidOmega_rad_s*60/(2*np.pi)}
 
 def Validation(Chromossome):
     
