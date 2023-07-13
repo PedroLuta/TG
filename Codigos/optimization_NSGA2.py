@@ -213,7 +213,7 @@ class NSGA2_v1:
 
 
 class NSGA2_v2:
-    def __init__(self, n_ind = 0, mut_rate = 0, t_size = 0, DecimalPoints = 4, convergence = 0, ma_len = 0, ma_tol = 0, MaxGenerations = infinite): 
+    def __init__(self, n_ind = 0, mut_rate = 0, t_size = 0, DecimalPoints = 4, convergence = 0, ma_len = 0, ma_tol = 0, MaxGenerations = 500): 
         self.n_ind = n_ind
         self.mut_rate = mut_rate
         self.t_size = t_size
@@ -239,36 +239,36 @@ class NSGA2_v2:
         # plt.plot(individual.get_ObjVal(0), individual.get_ObjVal(1), 'bo', label = "Individual")
 
     def run(self): 
-        print("Geração 1")
+        print("Generation 1!")
         self.create_first_gen() 
         self.evaluate_population(self.current_pop)
         self.current_pop = assign_fronts(self.current_pop)
         self.current_pop = assign_crowding(self.current_pop)
+        self.CurrentGeneration = 1
         #Plot works for 2 variables only
         Objective1Vec = [Ind.get_ObjVal(0) for Ind in self.current_pop]
         Objective2Vec = [Ind.get_ObjVal(1) for Ind in self.current_pop]
         MinMaxPlot = [[min(Objective1Vec), max(Objective1Vec)], [min(Objective2Vec), max(Objective2Vec)]]
 
-        plt.ion()
-        plt.plot(Objective1Vec, Objective2Vec, 'o')
-        # PlotLines = AnimatedPlot[0]
-        plt.xlim(MinMaxPlot[0])
-        plt.ylim(MinMaxPlot[1])
-        # print(self.current_pop[0].GetInformation())
-        plt.draw()
-        plt.pause(1)
+        # plt.ion()
+        # plt.plot(Objective1Vec, Objective2Vec, 'o')
+        # # PlotLines = AnimatedPlot[0]
+        # plt.xlim(MinMaxPlot[0])
+        # plt.ylim(MinMaxPlot[1])
+        # # print(self.current_pop[0].GetInformation())
+        # plt.draw()
+        # plt.pause(1)
 
         area_vec = []
         area_vec.append(area_under_Front(self.current_pop))
         moving_average = sum(area_vec)
-        # print(f"Moving Average = {moving_average}")
         stillness_count = 0
         generation = 2
         while stillness_count < self.convergence:
+            self.CurrentGeneration = generation
             if generation > self.MaxGenerations:
                 break
-            print(f"Geração {generation}")
-            # self.plot_population() 
+            print(f"Generation {generation}")
             self.create_offspring() 
             self.reinsert() 
             if len(area_vec) > self.ma_len:
@@ -281,30 +281,24 @@ class NSGA2_v2:
             else:
                 stillness_count = 0
             moving_average = new_moving_average
-            # print(f"Area below Pareto = {AreaBelowPareto}")
-            # print(f"Moving Average = {moving_average}")
+
             print(f"The Pareto is in convergence state for {stillness_count} generations")
-            Objective1Vec = [Ind.get_ObjVal(0) for Ind in self.current_pop]
-            Objective2Vec = [Ind.get_ObjVal(1) for Ind in self.current_pop]
-            plt.plot(Objective1Vec, Objective2Vec, 'o')
-            # print(self.current_pop[0].GetInformation())
-            # PlotLines.set_xdata(Objective1Vec)
-            # PlotLines.set_ydata(Objective1Vec)
-            if min(Objective1Vec) < MinMaxPlot[0][0]:
-                MinMaxPlot[0][0] = min(Objective1Vec)
-            if min(Objective2Vec) < MinMaxPlot[1][0]:
-                MinMaxPlot[1][0] = min(Objective2Vec)
-            if max(Objective1Vec) > MinMaxPlot[0][1]:
-                MinMaxPlot[0][1] = max(Objective1Vec)
-            if max(Objective2Vec) > MinMaxPlot[1][1]:
-                MinMaxPlot[1][1] = max(Objective2Vec)
-            plt.xlim(MinMaxPlot[0])
-            plt.ylim(MinMaxPlot[1])
-            plt.draw()
-            plt.pause(1)
-            # plt.plot(generation, moving_average, 'ro')
+            # Objective1Vec = [Ind.get_ObjVal(0) for Ind in self.current_pop]
+            # Objective2Vec = [Ind.get_ObjVal(1) for Ind in self.current_pop]
+            # plt.plot(Objective1Vec, Objective2Vec, 'o')
+            # if min(Objective1Vec) < MinMaxPlot[0][0]:
+            #     MinMaxPlot[0][0] = min(Objective1Vec)
+            # if min(Objective2Vec) < MinMaxPlot[1][0]:
+            #     MinMaxPlot[1][0] = min(Objective2Vec)
+            # if max(Objective1Vec) > MinMaxPlot[0][1]:
+            #     MinMaxPlot[0][1] = max(Objective1Vec)
+            # if max(Objective2Vec) > MinMaxPlot[1][1]:
+            #     MinMaxPlot[1][1] = max(Objective2Vec)
+            # plt.xlim(MinMaxPlot[0])
+            # plt.ylim(MinMaxPlot[1])
+            # plt.draw()
+            # plt.pause(1)
             generation += 1
-        # plt.show()
 
     def create_first_gen(self): #CHECKED - OK1 - OK2
         individuals = 0 
@@ -373,6 +367,8 @@ class NSGA2_v2:
                 individual.set_valid(False)
                 continue
             obj_vals, Information = self.evaluate(individual.get_chrom())
+            if type(obj_vals) == int:
+                print(individual.get_chrom())
             individual.set_ObjVal(obj_vals)
             individual.SetInformation(Information)
 
