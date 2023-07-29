@@ -81,14 +81,11 @@ class OneThirdSpectrum:
             else:
                 j = 0
                 while j < len(self.StandardOneThirdOctaveBands):
-                    # print(f'{self.StandardOneThirdOctaveBands[j][0]} {Bands_Hz[i]} {self.StandardOneThirdOctaveBands[j][1]}')
                     if (Bands_Hz[i] > self.StandardOneThirdOctaveBands[j][0]) and (Bands_Hz[i] <= self.StandardOneThirdOctaveBands[j][1]):
                         break
-                    # print(j)
                     j += 1
                 CentralBand = self.StandardOneThirdOctaveBands[j][3]
                 index = self.CentralBands_Hz.index(CentralBand)
-            # print(index)
             if (np.isnan(self.Spectrum_dB[index])):
                 self.Spectrum_dB[index] = SoundPressureLevels_dB[i]
             else:
