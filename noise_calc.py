@@ -242,23 +242,23 @@ class OneThirdSpectrum:
         return self.PNL() + self.ToneCorrection()
 
     def AWeigthed(self):
-        Ra = []
-        Ra1k = (12194**2)*(1000**4)/(((1000**2) + (20.6**2))*((((1000**2) + (107.7**2))*((1000**2) + (737.9**2)))**0.5)*((1000**2) + (12194**2)))
-        for Band_Hz in self.CentralBands_Hz:
-            Ra.append((12194**2)*(Band_Hz**4)/(((Band_Hz**2) + (20.6**2))*((((Band_Hz**2) + (107.7**2))*((Band_Hz**2) + (737.9**2)))**0.5)*((Band_Hz**2) + (12194**2))))
-        
-        Gain_dB = []
-        for RaValue in Ra:
-            Gain_dB.append((20*math.log10(RaValue)) - (20*math.log10(Ra1k)))
-        
-        AWeightedSPL_dB = []
-        for i in range(len(self.Spectrum_dB)):
-            if (np.isnan(self.Spectrum_dB[i])):
-                AWeightedSPL_dB.append(max([Gain_dB[i], 0]))
-            else:
-                AWeightedSPL_dB.append(max([self.Spectrum_dB[i] + Gain_dB[i], 0]))
-        
-        return AWeightedSPL_dB
+      Ra = []
+      Ra1k = (12194**2)*(1000**4)/(((1000**2) + (20.6**2))*((((1000**2) + (107.7**2))*((1000**2) + (737.9**2)))**0.5)*((1000**2) + (12194**2)))
+      for Band_Hz in self.CentralBands_Hz:
+        Ra.append((12194**2)*(Band_Hz**4)/(((Band_Hz**2) + (20.6**2))*((((Band_Hz**2) + (107.7**2))*((Band_Hz**2) + (737.9**2)))**0.5)*((Band_Hz**2) + (12194**2))))
+      
+      Gain_dB = []
+      for RaValue in Ra:
+        Gain_dB.append((20*math.log10(RaValue)) - (20*math.log10(Ra1k)))
+      
+      AWeightedSPL_dB = []
+      for i in range(len(self.Spectrum_dB)):
+        if (np.isnan(self.Spectrum_dB[i])):
+          AWeightedSPL_dB.append(max([Gain_dB[i], 0]))
+        else:
+          AWeightedSPL_dB.append(max([self.Spectrum_dB[i] + Gain_dB[i], 0]))
+      
+      return AWeightedSPL_dB
     
     def AWeightedOASPL(self):
         AWeightedSpectrum = self.AWeigthed()
@@ -276,20 +276,24 @@ class OneThirdSpectrum:
         return 10*math.log10(IntensitiesSum)
 
     def plot(self):
-        WidthVec = []
-        CentralBandsVec_Hz = []
-        PreferedCentralBandsVec_Hz = []
-        for i in range(len(self.StandardOneThirdOctaveBands)):
-            CentralBand_Hz = self.StandardOneThirdOctaveBands[i][2]
-            PreferedCentralBand_Hz = self.StandardOneThirdOctaveBands[i][3]
-            Width = self.StandardOneThirdOctaveBands[i][1] - self.StandardOneThirdOctaveBands[i][0]
-            WidthVec.append(Width)
-            CentralBandsVec_Hz.append(CentralBand_Hz)
-            PreferedCentralBandsVec_Hz.append(PreferedCentralBand_Hz)
-        plt.bar(CentralBandsVec_Hz, height = self.Spectrum_dB, width = WidthVec)
-        plt.xscale("log")
-        # plt.xticks(PreferedCentralBandsVec_Hz)
-        plt.show()
+      WidthVec = []
+      CentralBandsVec_Hz = []
+      PreferedCentralBandsVec_Hz = []
+      for i in range(len(self.StandardOneThirdOctaveBands)):
+        CentralBand_Hz = self.StandardOneThirdOctaveBands[i][2]
+        PreferedCentralBand_Hz = self.StandardOneThirdOctaveBands[i][3]
+        Width = self.StandardOneThirdOctaveBands[i][1] - self.StandardOneThirdOctaveBands[i][0]
+        WidthVec.append(Width)
+        CentralBandsVec_Hz.append(CentralBand_Hz)
+        PreferedCentralBandsVec_Hz.append(PreferedCentralBand_Hz)
+    #   plt.grid()
+      plt.bar(CentralBandsVec_Hz, height = self.Spectrum_dB, width = WidthVec, edgecolor = 'black', alpha = 0.5)#, color = 'none')
+      plt.xscale("log")
+      plt.xlabel("freq (Hz)")
+      plt.ylabel("SPL (dB)")
+      plt.xlim([10, 50000])
+      # plt.xticks(PreferedCentralBandsVec_Hz)
+    #   plt.show()
     
     def plotAWeightedComparison(self):
         WidthVec = []

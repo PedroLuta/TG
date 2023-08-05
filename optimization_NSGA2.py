@@ -256,6 +256,9 @@ class NSGA2_v2:
         # plt.xlim(MinMaxPlot[0])
         # plt.ylim(MinMaxPlot[1])
         # # print(self.current_pop[0].GetInformation())
+        # plt.grid()
+        # plt.xlabel("f1")
+        # plt.ylabel("f2")
         # plt.draw()
         # plt.pause(1)
 
@@ -296,6 +299,9 @@ class NSGA2_v2:
             #     MinMaxPlot[1][1] = max(Objective2Vec)
             # plt.xlim(MinMaxPlot[0])
             # plt.ylim(MinMaxPlot[1])
+            # plt.grid()
+            # plt.xlabel("f1")
+            # plt.ylabel("f2")
             # plt.draw()
             # plt.pause(1)
             generation += 1
