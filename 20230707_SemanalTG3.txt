@@ -1,0 +1,13 @@
+===================================================  PAUTA  ===================================================
+-> Coloquei informações
+-> Coloquei Databank de Mach
+-> Implementei vizualização da evolução de Paretto
+-> Mudança no resultado
+-> Banca
+	-> Alexandre Alves, Reinaldo Orselli
+	-> SUPLENTES: Cesar Freire + Pimentel/Loreto
+-> Ainda n~~ao comparei com outros algoritmos
+	
+===================================================ANOTAÇÕES===================================================
+-> Colocar grid nos plots
+-> Legenda nos eixos

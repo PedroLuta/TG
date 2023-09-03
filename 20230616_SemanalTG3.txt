@@ -1,0 +1,47 @@
+===================================================  PAUTA  ===================================================
+-> Situação boa do código
+	-> Rodadas com todos os métodos verificados (ruído e potência)
+	-> resultados condizentes
+		-> para ruído ele quer aumentar a área da pá
+	-> Desenvolvimentos pendentes:
+		-> Mach nas polares
+		-> Ver todos os indivíduos e sua evolução com as gerações
+		-> Guardar informações importantes dentro dos indivíduos
+	-> Desenvolvimentos possíveis:
+		-> Mudança de controle do formato da pá
+	-> Situações estranhas
+		-> Coletivo e passo estão dando muito alto para os dois extremos
+-> Banca
+	-> Como que é a dinâmica da banca? Escolha depende de como será a dinâmica
+	-> Possíveis professores:
+		-> Alexandre Alves
+		-> Cesar Freire
+		-> Reinaldo Orselli
+-> Relatório
+	-> O que você acha que falta no relatório?
+-> Situações que eu gostaria de me basear
+	-> Estudo de veículos para descobrir:
+		-> Tração target
+		-> Diâmetro
+	-> Comparação do meu NSGA2 com outros algoritmos multi-objetivo (já disponíveis)
+	
+===================================================ANOTAÇÕES===================================================
+-> Não mudar a parametrização de corda (vale um estudo completo nisso)
+-> Banca Alexandre Alves e Reinaldo Orselli, Cesar suplente e pensar em mais um suplente
+	-> Decidir se vai ser presencial ou não antes de mandar o convite
+-> Explicar o funcionamento no relatório
+	2.1.1
+-> Talvez retirar as variáveis de projeto do desenvolvimento (não vale uma seção inteira para isso)
+-> Casos de simulação vai para o capítulo de resultados
+-> Ao invés de conclusao e proximos passos => Conclusões e trabalhos futuros
+	-> Trabalhos futuros não é indicar o que é o óbvio
+	-> É o que você enxerga que pode ser feito na sequência justamente porque você fez o trabalho
+-> Referências
+	-> "Como descrito em Bass (1983)"
+	-> A forma de citação (BASS, 1983) também está certa, mas depende da frase
+-> Estudo de veículos cabe nos resultados
+	-> Primeiro explica a vfalidação e depois a aplicação
+-> Comparação do meu NSGA2 com outros algoritmos multi-objetivo (já disponíveis)
+	-> Tenta e se der ruim não coloca
+-> Explicar em detalhes como funciona o NSGA2 
+	-> Por exemplo: Moving average, criterio de parada e tolerancia
